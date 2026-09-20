@@ -33,11 +33,69 @@
 *(Będzie się zmieniać wraz z postępem prac.)*
 ```bash
 mSygnalista/
+├── public/                         # Strony dostępne w przeglądarce
+│   ├── index.php                   # Strona główna
+│   ├── uslugi.php                  # Oferta konsultacji
+│   ├── rezerwacja.php              # Formularz rezerwacji
+│   ├── zgloszenie.php              # Anonimowe zgłoszenie
+│   ├── status.php                  # Status zgłoszenia po tokenie
+│   ├── logowanie.php
+│   ├── rejestracja.php
+│   ├── wylogowanie.php
+│   │
+│   ├── konto/
+│   │   ├── profil.php
+│   │   └── rezerwacje.php          # Własne wizyty i ich anulowanie
+│   │
+│   ├── inspektor/
+│   │   ├── index.php               # Podsumowanie
+│   │   ├── rezerwacje.php
+│   │   ├── zgloszenia.php
+│   │   └── zgloszenie.php          # Szczegóły i obsługa sprawy
+│   │
+│   ├── admin/
+│   │   ├── index.php               # Statystyki
+│   │   ├── uzytkownicy.php
+│   │   ├── inspektorzy.php
+│   │   ├── uslugi.php
+│   │   ├── kategorie.php
+│   │   ├── harmonogram.php         # Godziny, przerwy i urlopy
+│   │   ├── rezerwacje.php
+│   │   ├── zgloszenia.php
+│   │   └── audyt.php
+│   │
+│   ├── pobierz-zalacznik.php       # Pobranie po sprawdzeniu dostępu
+│   └── assets/
+│       ├── css/style.css
+│       ├── js/app.js
+│       └── images/
 │
-├── index.php         # Strona główna
-├── zgloszenie.php    # Formularz nowego zgłoszenia naruszenia
-├── rezerwacja.php    # Moduł rezerwacji wizyt i konsultacji 
-├── status.php        # Wyszukiwarka statusu sprawy po unikalnym tokenie
-└── login.php         # Strefa logowania dla personelu i administratorów
+├── includes/                       # Wspólny kod PHP
+│   ├── init.php                    # Konfiguracja, sesja i wspólne pliki
+│   ├── db.php                      # Połączenie PDO
+│   ├── auth.php                    # Logowanie i kontrola dostępu
+│   ├── functions.php               # Escape HTML, CSRF, komunikaty
+│   ├── rezerwacje.php              # Dostępność i zapisywanie wizyt
+│   ├── zgloszenia.php              # Tokeny, zgłoszenia i załączniki
+│   ├── header.php                  # Początek HTML i nawigacja
+│   └── footer.php                  # Stopka
+│
+├── config/
+│   ├── config.php                  # Lokalne dane połączenia; poza Git
+│   └── config.example.php          # Wzór konfiguracji bez haseł
+│
+├── database/
+│   ├── database.sql
+│   └── erd.pdf
+│
+├── storage/
+│   ├── zalaczniki/                 # Pliki poza publicznym katalogiem
+│   └── logs/                       # Błędy aplikacji
+│
+├── docs/
+│   └── testy.md                    # Lista scenariuszy do sprawdzenia
+│
+├── .gitignore
+└── README.md
 ```
 
