@@ -87,6 +87,20 @@
             </div>
         </a>
 
+        <a href="uslugi.php" class="bg-mobiCard hover:border-gray-300 border border-gray-200/80 p-5 rounded-3xl transition duration-200 group flex flex-col justify-between shadow-sm">
+            <div>
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-105 transition duration-200">
+                    <i aria-hidden="true" class="fa-solid fa-calendar-check text-xl"></i>
+                </div>
+                <h4 class="text-base font-bold text-gray-900 mb-1">Konsultacje</h4>
+                <p class="text-mobiTextMuted text-xs sm:text-sm">Wybór usługi, inspektora i dostępnego terminu konsultacji.</p>
+            </div>
+            <div class="mt-4 flex items-center text-blue-600 text-xs font-bold group-hover:translate-x-1 transition duration-200">
+                <span>Zobacz ofertę</span>
+                <i aria-hidden="true" class="fa-solid fa-arrow-right ml-2"></i>
+            </div>
+        </a>
+
         <a href="rezerwacja.php" class="bg-mobiCard hover:border-gray-300 border border-gray-200/80 p-5 rounded-3xl transition duration-200 group flex flex-col justify-between shadow-sm">
             <div>
                 <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-105 transition duration-200">
