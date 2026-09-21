@@ -6,7 +6,8 @@ session_set_cookie_params([
     'samesite' => 'Lax',
     'path' => '/',
 ]);
-session_start();
+
+require_once __DIR__ . '/../includes/header.php';
 header('Cache-Control: no-store');
 
 function celPoLogowaniu(): string
@@ -111,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body class="bg-mobiBg text-mobiTextMain font-sans antialiased min-h-screen flex flex-col">
-<?php include 'header.php'; ?>
+<?php wyswietlHeader($zalogowany); ?>
 
 <main class="w-full max-w-md mx-auto px-4 py-10 flex-grow">
     <a href="index.php" class="inline-flex items-center gap-2 text-sm text-mobiRed font-semibold mb-6">
@@ -147,6 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 </main>
 
-<?php include 'footer.php'; ?>
+<?php include '/../includes/footer.php'; ?>
 </body>
 </html>
