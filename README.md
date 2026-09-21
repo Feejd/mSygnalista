@@ -33,7 +33,6 @@
 
 Po zaimportowaniu `database/database.sql` dostępne są poniższe konta:
 
-```bash
 | Rola | Adres e-mail |
 |---|---|
 | Administrator | `admin@example.test` |
@@ -51,7 +50,6 @@ Logowanie odbywa się przez stronę `public/logowanie.php`.
 Konto `klient.nieaktywny@example.test` jest nieaktywne i służy do sprawdzenia blokady logowania. Obowiązuje dla niego to samo hasło.
 
 Dane służą wyłącznie do lokalnych testów projektu. Hasła w bazie są przechowywane jako skróty bcrypt.
-```
 
 ## Struktura projektu
 *(Będzie się zmieniać wraz z postępem prac.)*
