@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../includes/header.php'; ?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -31,7 +32,7 @@
 </head>
 <body class="bg-mobiBg text-mobiTextMain font-sans antialiased min-h-screen flex flex-col justify-between">
 
-<?php include 'header.php'; ?>
+<?php wyswietlHeader($zalogowany); ?>
 
 <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
 
@@ -130,7 +131,7 @@
 
 </main>
 
-<?php include 'footer.php'; ?>
+<?php include '/../includes/footer.php'; ?>
 
 </body>
 </html>
