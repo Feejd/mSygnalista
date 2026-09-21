@@ -1,3 +1,27 @@
+<?php
+session_start();
+
+$zalogowany = isset($_SESSION['user_id'])
+    && filter_var($_SESSION['user_id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false;
+
+if (isset($_GET['umow'])) {
+    $uslugaId = filter_var($_GET['umow'], FILTER_VALIDATE_INT);
+
+    if (!in_array($uslugaId, [1, 2, 3, 4, 5], true)) {
+        http_response_code(400);
+        exit('Nieprawidłowa usługa.');
+    }
+
+    if (!$zalogowany) {
+        $_SESSION['wybrana_usluga'] = $uslugaId;
+        header('Location: logowanie.php');
+        exit;
+    }
+
+    header('Location: rezerwacja.php?usluga=' . $uslugaId);
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -42,7 +66,14 @@
             </div>
         </div>
         <div>
-            <a href="index.php" class="text-sm font-semibold text-mobiRed">Strona główna</a>
+            <?php if (!$zalogowany): ?>
+                <a href="logowanie.php" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-4 py-2 rounded-xl border border-gray-200 transition inline-flex items-center gap-2">
+                    <i aria-hidden="true" class="fa-solid fa-user-circle text-mobiRed"></i>
+                    Zaloguj się
+                </a>
+            <?php else: ?>
+                <span class="text-sm font-semibold text-emerald-700">Zalogowano</span>
+            <?php endif; ?>
         </div>
     </div>
 </header>
@@ -67,9 +98,13 @@
                 </div>
                 <div class="text-right">
                     <dt class="text-mobiTextMuted">Cena</dt>
-                    <dd class="font-semibold">0,00 zł</dd>
+                    <dd class="font-semibold">80,00 zł</dd>
                 </div>
             </dl>
+            <a href="uslugi.php?umow=1" aria-label="Umów wizytę: Podstawy prawa pracy" class="mt-5 bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-2xl transition inline-flex items-center justify-center gap-2 text-sm">
+                <i aria-hidden="true" class="fa-solid fa-calendar-plus"></i>
+                Umów wizytę
+            </a>
         </article>
 
         <article class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col">
@@ -83,9 +118,13 @@
                 </div>
                 <div class="text-right">
                     <dt class="text-mobiTextMuted">Cena</dt>
-                    <dd class="font-semibold">0,00 zł</dd>
+                    <dd class="font-semibold">150,00 zł</dd>
                 </div>
             </dl>
+            <a href="uslugi.php?umow=2" aria-label="Umów wizytę: Konsultacja BHP" class="mt-5 bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-2xl transition inline-flex items-center justify-center gap-2 text-sm">
+                <i aria-hidden="true" class="fa-solid fa-calendar-plus"></i>
+                Umów wizytę
+            </a>
         </article>
 
         <article class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col">
@@ -99,9 +138,13 @@
                 </div>
                 <div class="text-right">
                     <dt class="text-mobiTextMuted">Cena</dt>
-                    <dd class="font-semibold">0,00 zł</dd>
+                    <dd class="font-semibold">60,00 zł</dd>
                 </div>
             </dl>
+            <a href="uslugi.php?umow=3" aria-label="Umów wizytę: Zgłoszenie drogowe - konsultacja" class="mt-5 bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-2xl transition inline-flex items-center justify-center gap-2 text-sm">
+                <i aria-hidden="true" class="fa-solid fa-calendar-plus"></i>
+                Umów wizytę
+            </a>
         </article>
 
         <article class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col">
@@ -115,9 +158,13 @@
                 </div>
                 <div class="text-right">
                     <dt class="text-mobiTextMuted">Cena</dt>
-                    <dd class="font-semibold">0,00 zł</dd>
+                    <dd class="font-semibold">90,00 zł</dd>
                 </div>
             </dl>
+            <a href="uslugi.php?umow=4" aria-label="Umów wizytę: Procedura zgłoszenia" class="mt-5 bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-2xl transition inline-flex items-center justify-center gap-2 text-sm">
+                <i aria-hidden="true" class="fa-solid fa-calendar-plus"></i>
+                Umów wizytę
+            </a>
         </article>
 
         <article class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col">
@@ -131,9 +178,13 @@
                 </div>
                 <div class="text-right">
                     <dt class="text-mobiTextMuted">Cena</dt>
-                    <dd class="font-semibold">0,00 zł</dd>
+                    <dd class="font-semibold">120,00 zł</dd>
                 </div>
             </dl>
+            <a href="uslugi.php?umow=5" aria-label="Umów wizytę: Dokumenty pracownicze" class="mt-5 bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-2xl transition inline-flex items-center justify-center gap-2 text-sm">
+                <i aria-hidden="true" class="fa-solid fa-calendar-plus"></i>
+                Umów wizytę
+            </a>
         </article>
 
     </div>
