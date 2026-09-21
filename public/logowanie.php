@@ -111,16 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body class="bg-mobiBg text-mobiTextMain font-sans antialiased min-h-screen flex flex-col">
-<header class="bg-white border-b border-gray-200 px-4 py-4">
-    <div class="max-w-4xl mx-auto">
-        <a href="index.php" class="inline-flex items-center gap-3 font-extrabold text-gray-900">
-            <span class="w-10 h-10 rounded-xl bg-mobiRed flex items-center justify-center text-white">
-                <i aria-hidden="true" class="fa-solid fa-shield-halved"></i>
-            </span>
-            mSygnalista
-        </a>
-    </div>
-</header>
+<?php include 'header.php'; ?>
 
 <main class="w-full max-w-md mx-auto px-4 py-10 flex-grow">
     <a href="index.php" class="inline-flex items-center gap-2 text-sm text-mobiRed font-semibold mb-6">
@@ -156,11 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 </main>
 
-<footer class="bg-white border-t border-gray-200 py-6 px-4 text-center text-gray-400 text-xs">
-    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-        <p>© 2026 mSygnalista</p>
-        <p>Powered by Dominik Pieńkowski</p>
-    </div>
-</footer>
+<?php include 'footer.php'; ?>
 </body>
 </html>
