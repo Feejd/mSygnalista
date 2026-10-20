@@ -1,7 +1,12 @@
 <?php
 // Przed dołączeniem ustaw $tytul. Wymaga wcześniejszego init.php.
 $tytul = isset($tytul) ? $tytul . ' - mSygnalista' : 'mSygnalista - zgłoszenia i konsultacje';
-$uzytkownik = aktualnyUzytkownik();
+// gdy baza nie działa, strona błędu i tak ma się wyświetlić
+try {
+    $uzytkownik = aktualnyUzytkownik();
+} catch (PDOException $ex) {
+    $uzytkownik = null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pl">

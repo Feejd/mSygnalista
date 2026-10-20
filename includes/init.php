@@ -41,4 +41,15 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
 
+// Nieobsłużony wyjątek (np. brak połączenia z bazą) - wpis do logu i zwykły komunikat.
+set_exception_handler(function (Throwable $ex): void {
+    error_log(get_class($ex) . ': ' . $ex->getMessage() . ' w ' . $ex->getFile() . ':' . $ex->getLine());
+
+    if (headers_sent()) {
+        echo '<p>Wystąpił błąd. Spróbuj ponownie później.</p>';
+        return;
+    }
+    bladStrony(500, 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.');
+});
+
 sprawdzWaznoscSesji();
