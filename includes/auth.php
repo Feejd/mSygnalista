@@ -211,3 +211,43 @@ function emailZajety(string $email, ?int $pominId = null): bool
     $zapytanie->execute(['email' => $email, 'id' => $pominId ?? 0]);
     return $zapytanie->fetchColumn() !== false;
 }
+
+// --- Limit prób logowania ---
+
+const LOGOWANIE_MAX_PROB = 5;       // błędne próby na jeden e-mail
+const LOGOWANIE_MAX_PROB_IP = 20;   // błędne próby z jednego adresu IP
+const LOGOWANIE_BLOKADA_MIN = 15;   // na ile minut
+
+function adresIpBinarnie(): string
+{
+    $ip = inet_pton($_SERVER['REMOTE_ADDR'] ?? '') ?: '';
+    return $ip !== '' ? $ip : str_repeat("\0", 4);
+}
+
+// Liczy błędne próby z ostatnich 15 minut, ale tylko od ostatniego udanego logowania.
+function zaDuzoProbLogowania(string $email): bool
+{
+    $zapytanie = db()->prepare(
+        'SELECT
+            (SELECT COUNT(*) FROM login_attempts a
+              WHERE a.email = :email1 AND a.was_successful = 0
+                AND a.attempted_at > NOW() - INTERVAL ' . LOGOWANIE_BLOKADA_MIN . ' MINUTE
+                AND a.attempted_at >= COALESCE((SELECT MAX(s.attempted_at) FROM login_attempts s
+                                                 WHERE s.email = :email2 AND s.was_successful = 1), \'1000-01-01\')
+            ) AS na_email,
+            (SELECT COUNT(*) FROM login_attempts
+              WHERE ip_address = :ip AND was_successful = 0
+                AND attempted_at > NOW() - INTERVAL ' . LOGOWANIE_BLOKADA_MIN . ' MINUTE
+            ) AS na_ip'
+    );
+    $zapytanie->execute(['email1' => $email, 'email2' => $email, 'ip' => adresIpBinarnie()]);
+    $wynik = $zapytanie->fetch();
+
+    return $wynik['na_email'] >= LOGOWANIE_MAX_PROB || $wynik['na_ip'] >= LOGOWANIE_MAX_PROB_IP;
+}
+
+function zapiszProbeLogowania(string $email, bool $udana): void
+{
+    db()->prepare('INSERT INTO login_attempts (email, ip_address, was_successful) VALUES (:email, :ip, :udana)')
+        ->execute(['email' => $email, 'ip' => adresIpBinarnie(), 'udana' => (int) $udana]);
+}

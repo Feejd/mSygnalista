@@ -34,31 +34,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $blad = 'Nieprawidłowy e-mail lub hasło.';
     } else {
         try {
-            $zapytanie = db()->prepare(
-                'SELECT id, password_hash, is_active FROM users WHERE email = :email LIMIT 1'
-            );
-            $zapytanie->execute(['email' => $email]);
-            $uzytkownik = $zapytanie->fetch();
-
-            // Ten sam komunikat dla błędnego hasła, braku konta i konta nieaktywnego.
-            // Sztuczny hash sprawia, że odpowiedź trwa tyle samo, gdy konta nie ma.
-            $hash = $uzytkownik['password_hash'] ?? '$2y$10$U.vI48CxvqTFjsEny.GCTOUqIPkGk5dx0Dtz0XaB0D/wGm6CC2HTO';
-            $poprawneHaslo = password_verify($haslo, $hash);
-
-            if (!$uzytkownik || !$poprawneHaslo || (int) $uzytkownik['is_active'] !== 1) {
-                $blad = 'Nieprawidłowy e-mail lub hasło.';
+            if (zaDuzoProbLogowania($email)) {
+                http_response_code(429);
+                $blad = 'Zbyt wiele nieudanych prób logowania. Spróbuj ponownie za ' . LOGOWANIE_BLOKADA_MIN . ' minut.';
             } else {
-                // przy okazji logowania podbijamy koszt hasha, jeśli PHP ma nowsze ustawienia
-                if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
-                    db()->prepare('UPDATE users SET password_hash = :hash WHERE id = :id')
-                        ->execute(['hash' => password_hash($haslo, PASSWORD_DEFAULT), 'id' => $uzytkownik['id']]);
+                $zapytanie = db()->prepare(
+                    'SELECT id, password_hash, is_active FROM users WHERE email = :email LIMIT 1'
+                );
+                $zapytanie->execute(['email' => $email]);
+                $uzytkownik = $zapytanie->fetch();
+
+                // Ten sam komunikat dla błędnego hasła, braku konta i konta nieaktywnego.
+                // Sztuczny hash sprawia, że odpowiedź trwa tyle samo, gdy konta nie ma.
+                $hash = $uzytkownik['password_hash'] ?? '$2y$10$U.vI48CxvqTFjsEny.GCTOUqIPkGk5dx0Dtz0XaB0D/wGm6CC2HTO';
+                $poprawneHaslo = password_verify($haslo, $hash);
+
+                if (!$uzytkownik || !$poprawneHaslo || (int) $uzytkownik['is_active'] !== 1) {
+                    zapiszProbeLogowania($email, false);
+                    $blad = 'Nieprawidłowy e-mail lub hasło.';
+                } else {
+                    zapiszProbeLogowania($email, true);
+
+                    // przy okazji logowania podbijamy koszt hasha, jeśli PHP ma nowsze ustawienia
+                    if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
+                        db()->prepare('UPDATE users SET password_hash = :hash WHERE id = :id')
+                            ->execute(['hash' => password_hash($haslo, PASSWORD_DEFAULT), 'id' => $uzytkownik['id']]);
+                    }
+
+                    $wybranaUsluga = $_SESSION['wybrana_usluga'] ?? null;
+                    zalogujUzytkownika((int) $uzytkownik['id']);
+                    $_SESSION['wybrana_usluga'] = $wybranaUsluga;
+
+                    przekieruj(celPoLogowaniu());
                 }
-
-                $wybranaUsluga = $_SESSION['wybrana_usluga'] ?? null;
-                zalogujUzytkownika((int) $uzytkownik['id']);
-                $_SESSION['wybrana_usluga'] = $wybranaUsluga;
-
-                przekieruj(celPoLogowaniu());
             }
         } catch (PDOException $ex) {
             error_log('Logowanie: ' . $ex->getMessage());
