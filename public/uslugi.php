@@ -1,60 +1,25 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/init.php';
 
 if (isset($_GET['umow'])) {
     $uslugaId = filter_var($_GET['umow'], FILTER_VALIDATE_INT);
 
     if (!in_array($uslugaId, [1, 2, 3, 4, 5], true)) {
-        http_response_code(400);
-        exit('Nieprawidłowa usługa.');
+        bladStrony(400, 'Nieprawidłowa usługa.');
     }
 
-    if (!$zalogowany) {
+    if (!zalogowany()) {
         $_SESSION['wybrana_usluga'] = $uslugaId;
-        header('Location: logowanie.php');
-        exit;
+        komunikat('blad', 'Zaloguj się, aby umówić konsultację.');
+        przekieruj('logowanie.php');
     }
 
-    header('Location: rezerwacja.php?usluga=' . $uslugaId);
-    exit;
+    przekieruj('rezerwacja.php?usluga=' . $uslugaId);
 }
+
+$tytul = 'Konsultacje';
+require __DIR__ . '/../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konsultacje - mSygnalista</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mobiRed: '#D32F2F',
-                        mobiRedDark: '#B71C1C',
-                        mobiBg: '#F3F4F6',
-                        mobiCard: '#FFFFFF',
-                        mobiTextMain: '#1F2937',
-                        mobiTextMuted: '#6B7280',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        a:focus-visible {
-            outline: 3px solid #174b91;
-            outline-offset: 4px;
-        }
-    </style>
-</head>
-<body class="bg-mobiBg text-mobiTextMain font-sans antialiased min-h-screen flex flex-col justify-between">
-
-<?php wyswietlHeader($zalogowany); ?>
-
-<main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
     <a href="index.php" class="inline-flex items-center gap-2 text-sm text-mobiRed font-semibold mb-6">
         <i aria-hidden="true" class="fa-solid fa-arrow-left"></i> Strona główna
     </a>
@@ -164,9 +129,4 @@ if (isset($_GET['umow'])) {
         </article>
 
     </div>
-</main>
-
-<?php include '/../includes/footer.php' ?>
-
-</body>
-</html>
+<?php require __DIR__ . '/../includes/footer.php'; ?>
