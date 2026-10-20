@@ -111,3 +111,44 @@ function poleFormularza(string $nazwa, string $etykieta, string $wartosc, array 
 
     return $html . '</div>';
 }
+
+// --- Oferta ---
+
+// Aktywne usługi z aktywnej kategorii, opcjonalnie tylko z jednej kategorii.
+// liczba_inspektorow = ilu aktywnych inspektorów wykonuje usługę.
+function aktywneUslugi(?int $kategoriaId = null): array
+{
+    $sql = 'SELECT s.id, s.name, s.description, s.duration_minutes, s.price,
+                   c.id AS category_id, c.name AS category_name,
+                   COUNT(i.id) AS liczba_inspektorow
+            FROM services s
+            JOIN service_categories c ON c.id = s.category_id AND c.is_active = 1
+            LEFT JOIN inspector_services isv ON isv.service_id = s.id AND isv.is_active = 1
+            LEFT JOIN inspectors i ON i.id = isv.inspector_id AND i.is_active = 1
+            WHERE s.is_active = 1';
+    $parametry = [];
+
+    if ($kategoriaId !== null) {
+        $sql .= ' AND c.id = :kategoria';
+        $parametry['kategoria'] = $kategoriaId;
+    }
+
+    $zapytanie = db()->prepare($sql . ' GROUP BY s.id ORDER BY c.name, s.name');
+    $zapytanie->execute($parametry);
+    return $zapytanie->fetchAll();
+}
+
+function czyAktywnaUsluga(int $id): bool
+{
+    $zapytanie = db()->prepare(
+        'SELECT 1 FROM services s JOIN service_categories c ON c.id = s.category_id
+         WHERE s.id = :id AND s.is_active = 1 AND c.is_active = 1'
+    );
+    $zapytanie->execute(['id' => $id]);
+    return $zapytanie->fetchColumn() !== false;
+}
+
+function cena(string $kwota): string
+{
+    return (float) $kwota == 0.0 ? 'Bezpłatna' : number_format((float) $kwota, 2, ',', ' ') . ' zł';
+}

@@ -8,7 +8,7 @@ function celPoLogowaniu(): string
     $id = $_SESSION['wybrana_usluga'] ?? null;
     unset($_SESSION['wybrana_usluga']);
 
-    if (maRole(ROLA_OBYWATEL) && is_int($id) && in_array($id, [1, 2, 3, 4, 5], true)) {
+    if (maRole(ROLA_OBYWATEL) && is_int($id) && czyAktywnaUsluga($id)) {
         return 'uslugi.php?umow=' . $id;
     }
     return panelUzytkownika();
