@@ -162,7 +162,7 @@ mSygnalista/
 │
 ├── database/
 │   ├── database.sql
-│   └── erd.pdf
+│   └── db_ms.pdf                   # Schemat bazy (ERD)
 │
 ├── storage/
 │   ├── zalaczniki/                 # Pliki poza publicznym katalogiem
