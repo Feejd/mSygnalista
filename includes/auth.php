@@ -12,17 +12,16 @@ const SESJA_ODNOWIENIE_ID = 15 * 60;     // nowy identyfikator sesji co 15 min
 // więc zablokowanie konta albo zmiana roli działa od razu.
 function aktualnyUzytkownik(): ?array
 {
-    static $uzytkownik = false;
+    // zapamiętane dla danego user_id, żeby nie pytać bazy kilka razy w jednym żądaniu
+    static $pamiec = ['id' => null, 'dane' => null];
 
-    if ($uzytkownik !== false) {
-        return $uzytkownik;
-    }
-
-    $uzytkownik = null;
     $id = $_SESSION['user_id'] ?? null;
 
     if (!is_int($id)) {
         return null;
+    }
+    if ($pamiec['id'] === $id) {
+        return $pamiec['dane'];
     }
 
     $zapytanie = db()->prepare(
@@ -43,8 +42,8 @@ function aktualnyUzytkownik(): ?array
     $role->execute(['id' => $id]);
     $wiersz['roles'] = $role->fetchAll(PDO::FETCH_COLUMN);
 
-    $uzytkownik = $wiersz;
-    return $uzytkownik;
+    $pamiec = ['id' => $id, 'dane' => $wiersz];
+    return $wiersz;
 }
 
 function zalogowany(): bool
