@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "msygnalista",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+
+  // kod, który trzeba wpisać, żeby wejść na stronę (podany też w README)
+  "vars": {
+    "KOD_DOSTEPU": "msyg-0f844c7e"
+  },
+
+  // zapasowy adres msygnalista.rat-api.workers.dev
+  "workers_dev": true,
+
+  "routes": [
+    { "pattern": "msygnalista.feejd.space", "custom_domain": true }
+  ],
+
+  "containers": [
+    {
+      "class_name": "MsygnalistaKontener",
+      "image": "./Dockerfile",
+      "image_build_context": "..",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "KONTENER", "class_name": "MsygnalistaKontener" }
+    ]
+  },
+
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["MsygnalistaKontener"] }
+  ],
+
+  "observability": { "enabled": true }
+}
