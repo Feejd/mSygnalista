@@ -138,3 +138,77 @@ function sprawdzWaznoscSesji(): void
 
     $_SESSION['ostatnia_aktywnosc'] = $teraz;
 }
+
+// --- Walidacja danych konta (rejestracja i profil) ---
+
+const HASLO_MIN = 8;
+const HASLO_MAX = 72; // bcrypt bierze pod uwagę tylko 72 bajty
+
+// Zwraca [poprawione dane, błędy]. Klucze błędów = nazwy pól formularza.
+function walidujDaneOsobowe(array $dane): array
+{
+    $bledy = [];
+    $wzorNazwy = "/^\p{L}[\p{L} '\-]*$/u";
+
+    $imie = $dane['imie'] ?? '';
+    if ($imie === '') {
+        $bledy['imie'] = 'Podaj imię.';
+    } elseif (mb_strlen($imie) < 2 || mb_strlen($imie) > 80 || !preg_match($wzorNazwy, $imie)) {
+        $bledy['imie'] = 'Imię może zawierać tylko litery (2-80 znaków).';
+    }
+
+    $nazwisko = $dane['nazwisko'] ?? '';
+    if ($nazwisko === '') {
+        $bledy['nazwisko'] = 'Podaj nazwisko.';
+    } elseif (mb_strlen($nazwisko) < 2 || mb_strlen($nazwisko) > 100 || !preg_match($wzorNazwy, $nazwisko)) {
+        $bledy['nazwisko'] = 'Nazwisko może zawierać litery, spację i myślnik (2-100 znaków).';
+    }
+
+    $email = mb_strtolower($dane['email'] ?? '');
+    if ($email === '') {
+        $bledy['email'] = 'Podaj adres e-mail.';
+    } elseif (strlen($email) > 254 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $bledy['email'] = 'Adres e-mail ma nieprawidłowy format.';
+    }
+
+    // telefon zapisujemy bez spacji i myślników, np. +48123456789
+    $telefon = preg_replace('/[\s\-()]/', '', $dane['telefon'] ?? '');
+    if ($telefon === '') {
+        $bledy['telefon'] = 'Podaj numer telefonu.';
+    } elseif (!preg_match('/^\+?[0-9]{9,15}$/', $telefon)) {
+        $bledy['telefon'] = 'Numer telefonu powinien mieć 9-15 cyfr, np. 600 700 800 lub +48600700800.';
+    }
+
+    return [
+        ['imie' => $imie, 'nazwisko' => $nazwisko, 'email' => $email, 'telefon' => $telefon],
+        $bledy,
+    ];
+}
+
+function walidujHaslo(string $haslo, string $powtorzenie, string $pole = 'haslo'): array
+{
+    $bledy = [];
+
+    if ($haslo === '') {
+        $bledy[$pole] = 'Podaj hasło.';
+    } elseif (strlen($haslo) < HASLO_MIN || strlen($haslo) > HASLO_MAX) {
+        $bledy[$pole] = 'Hasło musi mieć od ' . HASLO_MIN . ' do ' . HASLO_MAX . ' znaków.';
+    } elseif (!preg_match('/\p{L}/u', $haslo) || !preg_match('/\d/', $haslo)) {
+        $bledy[$pole] = 'Hasło musi zawierać co najmniej jedną literę i jedną cyfrę.';
+    }
+
+    if ($powtorzenie === '') {
+        $bledy[$pole . '2'] = 'Powtórz hasło.';
+    } elseif (!isset($bledy[$pole]) && !hash_equals($haslo, $powtorzenie)) {
+        $bledy[$pole . '2'] = 'Hasła nie są takie same.';
+    }
+
+    return $bledy;
+}
+
+function emailZajety(string $email, ?int $pominId = null): bool
+{
+    $zapytanie = db()->prepare('SELECT id FROM users WHERE email = :email AND id <> :id LIMIT 1');
+    $zapytanie->execute(['email' => $email, 'id' => $pominId ?? 0]);
+    return $zapytanie->fetchColumn() !== false;
+}

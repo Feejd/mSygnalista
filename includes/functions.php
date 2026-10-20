@@ -80,3 +80,34 @@ function bladStrony(int $kod, string $tresc): never
     require __DIR__ . '/footer.php';
     exit;
 }
+
+// Pole formularza z etykietą i komunikatem błędu pod spodem.
+// Dla type="password" dokłada przycisk pokaż/ukryj i nie wypisuje wartości.
+function poleFormularza(string $nazwa, string $etykieta, string $wartosc, array $bledy, string $typ = 'text', string $atrybuty = ''): string
+{
+    $id = 'pole-' . $nazwa;
+    $blad = $bledy[$nazwa] ?? null;
+    $html = '<div><label for="' . e($id) . '" class="block text-sm font-semibold mb-2">' . e($etykieta) . '</label>';
+    $html .= '<div class="relative">';
+    $html .= '<input type="' . e($typ) . '" id="' . e($id) . '" name="' . e($nazwa) . '" class="pole' . ($typ === 'password' ? ' pr-12' : '') . '" ' . $atrybuty;
+
+    if ($typ !== 'password') {
+        $html .= ' value="' . e($wartosc) . '"';
+    }
+    if ($blad !== null) {
+        $html .= ' aria-invalid="true" aria-describedby="' . e($id) . '-blad"';
+    }
+    $html .= '>';
+
+    if ($typ === 'password') {
+        $html .= '<button type="button" data-pokaz-haslo="' . e($id) . '" aria-pressed="false" aria-label="Pokaż hasło"'
+            . ' class="absolute inset-y-0 right-0 px-4 text-gray-500 hover:text-mobiRed"><i class="fa-solid fa-eye"></i></button>';
+    }
+    $html .= '</div>';
+
+    if ($blad !== null) {
+        $html .= '<p id="' . e($id) . '-blad" class="blad-pola">' . e($blad) . '</p>';
+    }
+
+    return $html . '</div>';
+}
