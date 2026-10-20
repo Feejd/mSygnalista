@@ -1,0 +1,12 @@
+# lokalna konfiguracja z hasłem do bazy
+config/config.php
+
+# logi i pliki wgrane przez użytkowników
+storage/logs/*
+!storage/logs/.gitkeep
+storage/zalaczniki/*
+!storage/zalaczniki/.gitkeep
+
+.DS_Store
+.idea/
+.vscode/
