@@ -1,41 +1,7 @@
-<?php require_once __DIR__ . '/../includes/header.php'; ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mSygnalista - zgłoszenia i konsultacje</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mobiRed: '#D32F2F',
-                        mobiRedDark: '#B71C1C',
-                        mobiBg: '#F3F4F6',
-                        mobiCard: '#FFFFFF',
-                        mobiTextMain: '#1F2937',
-                        mobiTextMuted: '#6B7280',
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        a:focus-visible {
-            outline: 3px solid #174b91;
-            outline-offset: 4px;
-        }
-    </style>
-</head>
-<body class="bg-mobiBg text-mobiTextMain font-sans antialiased min-h-screen flex flex-col justify-between">
-
-<?php wyswietlHeader($zalogowany); ?>
-
-<main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
-
+<?php
+require_once __DIR__ . '/../includes/init.php';
+require __DIR__ . '/../includes/header.php';
+?>
     <div class="bg-white border border-gray-200/80 rounded-3xl p-6 mb-6 shadow-sm relative overflow-hidden">
         <div class="absolute right-0 top-0 w-32 h-32 bg-red-50 rounded-full blur-2xl pointer-events-none"></div>
         <div class="relative z-10">
@@ -113,7 +79,7 @@
             </div>
         </a>
 
-        <a href="logowanie.php" class="bg-mobiCard hover:border-gray-300 border border-gray-200/80 p-5 rounded-3xl transition duration-200 group flex flex-col justify-between shadow-sm">
+        <a href="<?= e(zalogowany() ? url(panelUzytkownika()) : url('logowanie.php')) ?>" class="bg-mobiCard hover:border-gray-300 border border-gray-200/80 p-5 rounded-3xl transition duration-200 group flex flex-col justify-between shadow-sm">
             <div>
                 <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-105 transition duration-200">
                     <i aria-hidden="true" class="fa-solid fa-user-tie text-xl"></i>
@@ -129,9 +95,4 @@
 
     </div>
 
-</main>
-
-<?php include '/../includes/footer.php'; ?>
-
-</body>
-</html>
+<?php require __DIR__ . '/../includes/footer.php'; ?>

@@ -1,0 +1,51 @@
+/* Własne style poza Tailwindem */
+
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid #174b91;
+    outline-offset: 4px;
+}
+
+.komunikat {
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border: 1px solid;
+}
+
+.komunikat-blad {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.komunikat-sukces {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.pole {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #fff;
+}
+
+.pole:focus {
+    outline: none;
+    border-color: #D32F2F;
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.35);
+}
+
+.pole[aria-invalid="true"] {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+
+.blad-pola {
+    color: #b91c1c;
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}

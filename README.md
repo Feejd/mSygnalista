@@ -23,11 +23,20 @@
 
 ## Technologie
 
-- **Frontend:** HTML5, Tailwind CSS, FontAwesome 6
+- **Frontend:** HTML5, Tailwind CSS, JavaScript, FontAwesome 6
 
 - **Backend:** PHP
 
 - **Baza danych:** MySQL / MariaDB
+
+## Uruchomienie
+
+1. Skopiuj projekt do katalogu serwera (np. `MAMP/htdocs/mSygnalista`).
+2. Zaimportuj `database/database.sql` w phpMyAdmin albo poleceniem `mysql -u root -p < database/database.sql`. Skrypt sam tworzy bazę `msygnalista`.
+3. Skopiuj `config/config.example.php` jako `config/config.php` i wpisz dane do bazy (MAMP: port `8889`, użytkownik i hasło `root`). Plik `config.php` jest w `.gitignore`, więc hasło nie trafia do repozytorium.
+4. Otwórz w przeglądarce `http://localhost:8888/mSygnalista/public/` (port zależy od serwera).
+
+Wymagane PHP 8.1 lub nowsze. Błędy aplikacji zapisują się w `storage/logs/app.log`.
 
 ## Konta testowe
 
@@ -50,6 +59,31 @@ Logowanie odbywa się przez stronę `public/logowanie.php`.
 Konto `klient.nieaktywny@example.test` jest nieaktywne i służy do sprawdzenia blokady logowania. Obowiązuje dla niego to samo hasło.
 
 Dane służą wyłącznie do lokalnych testów projektu. Hasła w bazie są przechowywane jako skróty bcrypt.
+
+## Użytkownicy i logowanie (etap 2)
+
+| Rola | Po zalogowaniu | Dostęp |
+|---|---|---|
+| Obywatel (`citizen`) | `konto/profil.php` | własny profil, w kolejnym etapie rezerwacje |
+| Inspektor (`inspector`) | `inspektor/index.php` | panel inspektora i własny profil |
+| Administrator (`admin`) | `admin/index.php` | panel administratora, panel inspektora i własny profil |
+
+- **Rejestracja** (`rejestracja.php`) – imię, nazwisko, e-mail, telefon, hasło i powtórzenie hasła. Serwer sprawdza wymagane pola, format e-maila i telefonu, unikalność e-maila oraz zgodność haseł. Nowe konto zawsze dostaje rolę obywatela.
+- **Hasła** – `password_hash()` / `password_verify()`, min. 8 znaków z literą i cyfrą. Przy logowaniu stary hash jest automatycznie przeliczany, jeśli PHP używa mocniejszych ustawień (`password_needs_rehash()`).
+- **Sesja** – po zalogowaniu `session_regenerate_id()`, ciasteczko `HttpOnly` + `SameSite=Lax`, tryb `use_strict_mode`. Wylogowanie po 30 minutach bez aktywności. Dane i role użytkownika są wczytywane z bazy przy każdym żądaniu, więc dezaktywacja konta działa od razu.
+- **Kontrola dostępu** – każda chroniona strona wywołuje `wymagajLogowania()` albo `wymagajRoli()` z `includes/auth.php`. Wejście na `admin/` przez wpisanie adresu bez roli administratora kończy się błędem 403.
+- **Profil** (`konto/profil.php`) – edycja imienia, nazwiska, telefonu i e-maila (zmiana e-maila wymaga podania hasła) oraz zmiana hasła po podaniu starego.
+- **Bezpieczeństwo** – wszystkie zapytania przez PDO z prepared statements, tokeny CSRF w każdym formularzu (także przy wylogowaniu), `htmlspecialchars()` przy wypisywaniu danych, komunikaty błędów bez szczegółów technicznych.
+
+### Funkcje dodatkowe
+
+- limit prób logowania – po 5 błędnych próbach na jeden e-mail (lub 20 z jednego IP) logowanie jest blokowane na 15 minut (tabela `login_attempts`),
+- tokeny CSRF,
+- zmiana hasła po podaniu starego,
+- automatyczne wylogowanie po bezczynności i okresowa zmiana identyfikatora sesji,
+- ten sam komunikat przy złym haśle, braku konta i koncie nieaktywnym (nie da się sprawdzić, czy e-mail jest w bazie).
+
+Scenariusze testowe: [`docs/testy.md`](docs/testy.md).
 
 ## Struktura projektu
 *(Będzie się zmieniać wraz z postępem prac.)*

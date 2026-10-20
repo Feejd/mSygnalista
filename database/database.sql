@@ -52,6 +52,17 @@ CREATE TABLE user_roles (
                           FOREIGN KEY (role_id) REFERENCES roles(id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE login_attempts (
+                              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                              email VARCHAR(254) NOT NULL,
+                              ip_address VARBINARY(16) NOT NULL,
+                              was_successful BOOLEAN NOT NULL DEFAULT FALSE,
+                              attempted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              KEY idx_login_email (email, attempted_at),
+                              KEY idx_login_ip (ip_address, attempted_at),
+                              CHECK (was_successful IN (0,1))
+) ENGINE=InnoDB;
+
 CREATE TABLE inspectors (
                           id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                           user_id BIGINT UNSIGNED NOT NULL UNIQUE,
