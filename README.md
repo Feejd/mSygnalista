@@ -7,6 +7,16 @@
 
 
 
+## Wersja online
+
+**Link:** https://msygnalista.feejd.space
+
+**Kod dostępu:** `msyg-0f844c7e`
+
+Po wpisaniu kodu otwiera się normalna aplikacja; logowanie kontami testowymi z sekcji [Konta testowe](#konta-testowe). Zapasowy adres (gdyby sieć blokowała domenę): https://msygnalista.rat-api.workers.dev
+
+Wersja online działa w Cloudflare Containers. Po 30 minutach bez ruchu kontener usypia, a baza wraca do danych z `database.sql` – konta założone w międzyczasie znikają. Pierwsze wejście po uśpieniu może trwać kilkanaście sekund.
+
 ## O projekcie
 
 **mSygnalista** to nowoczesna, bezpieczna platforma webowa inspirowana oficjalnymi rozwiązaniami rządowymi. Jej głównym zadaniem jest ułatwienie obywatelom zgłaszania wykroczeń drogowych, naruszeń praw pracowniczych oraz innych nieprawidłowości, a także rezerwowania oficjalnych konsultacji z inspektorami państwowymi (m.in. z Państwową Inspekcją Pracy).
@@ -37,6 +47,16 @@
 4. Otwórz w przeglądarce `http://localhost:8888/mSygnalista/public/` (port zależy od serwera).
 
 Wymagane PHP 8.1 lub nowsze. Błędy aplikacji zapisują się w `storage/logs/app.log`.
+
+### Wdrożenie na Cloudflare
+
+Pliki w katalogu `deploy/`: `Dockerfile` buduje obraz z Apache, PHP i MariaDB, `start.sh` przy starcie importuje `database.sql` i tworzy `config.php` z losowym hasłem do bazy, a Worker (`src/index.ts`) sprawdza kod dostępu i przekazuje ruch do kontenera. Wymaga planu Workers Paid i Dockera.
+
+```bash
+cd deploy
+npm install
+npx wrangler deploy
+```
 
 ## Konta testowe
 
@@ -150,6 +170,14 @@ mSygnalista/
 │
 ├── docs/
 │   └── testy.md                    # Lista scenariuszy do sprawdzenia
+│
+├── deploy/                         # Wersja online (Cloudflare Containers)
+│   ├── Dockerfile                  # Apache + PHP + MariaDB
+│   ├── start.sh                    # Start bazy i import database.sql
+│   ├── apache-msygnalista.conf
+│   ├── wrangler.jsonc              # Konfiguracja Workera i domeny
+│   ├── package.json
+│   └── src/index.ts                # Kod dostępu i przekazanie ruchu do kontenera
 │
 ├── .gitignore
 └── README.md

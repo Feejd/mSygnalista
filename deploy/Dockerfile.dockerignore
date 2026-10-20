@@ -1,0 +1,6 @@
+.git
+.idea
+config/config.php
+storage/logs/*.log
+deploy/node_modules
+deploy/.wrangler
