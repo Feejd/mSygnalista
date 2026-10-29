@@ -21,6 +21,8 @@ require __DIR__ . '/../../includes/header.php';
 <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">Panel administratora</h1>
 <p class="text-mobiTextMuted mb-6">Zalogowano jako <?= e($uzytkownik['first_name'] . ' ' . $uzytkownik['last_name']) ?>.</p>
 
+<?= menuAdmina('index.php') ?>
+
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
     <?php foreach ([
         ['Obywatele', $liczby['obywatele'], 'fa-users'],
@@ -37,6 +39,6 @@ require __DIR__ . '/../../includes/header.php';
 </div>
 
 <div class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm text-sm text-mobiTextMuted">
-    Zarządzanie użytkownikami, usługami, inspektorami i rezerwacjami pojawi się w kolejnym etapie projektu.
+    Kategorie są już w zakładce powyżej. Zarządzanie usługami, inspektorami, użytkownikami i rezerwacjami jest w przygotowaniu.
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>
