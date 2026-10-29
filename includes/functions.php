@@ -152,3 +152,40 @@ function cena(string $kwota): string
 {
     return (float) $kwota == 0.0 ? 'Bezpłatna' : number_format((float) $kwota, 2, ',', ' ') . ' zł';
 }
+
+// --- Panel administratora ---
+
+// Zakładki na górze każdej strony w admin/.
+function menuAdmina(string $aktywna): string
+{
+    $zakladki = [
+        'index.php' => ['Start', 'fa-gauge'],
+        'kategorie.php' => ['Kategorie', 'fa-folder-tree'],
+    ];
+
+    $html = '<nav class="flex flex-wrap gap-2 mb-6" aria-label="Panel administratora">';
+    foreach ($zakladki as $plik => [$nazwa, $ikona]) {
+        $klasa = $plik === $aktywna
+            ? 'bg-gray-900 text-white border-gray-900'
+            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300';
+        $html .= '<a href="' . e(url('admin/' . $plik)) . '" class="text-xs font-semibold px-4 py-2 rounded-xl border transition inline-flex items-center gap-2 ' . $klasa . '"'
+            . ($plik === $aktywna ? ' aria-current="page"' : '') . '>'
+            . '<i aria-hidden="true" class="fa-solid ' . e($ikona) . '"></i>' . e($nazwa) . '</a>';
+    }
+    return $html . '</nav>';
+}
+
+// Wpis do audit_logs (tabela tylko do dopisywania - pilnują tego triggery).
+function zapiszAudyt(string $akcja, string $encja, int $encjaId, string $opis): void
+{
+    db()->prepare(
+        'INSERT INTO audit_logs (actor_id, action_code, entity_type, entity_id, description)
+         VALUES (:kto, :akcja, :encja, :id, :opis)'
+    )->execute([
+        'kto' => aktualnyUzytkownik()['id'],
+        'akcja' => $akcja,
+        'encja' => $encja,
+        'id' => $encjaId,
+        'opis' => mb_substr($opis, 0, 1000),
+    ]);
+}

@@ -28,3 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
         powtorzenie.addEventListener('input', sprawdz);
     });
 });
+
+// potwierdzenie przed usunięciem / wyłączeniem (formularz z data-potwierdz="...")
+document.addEventListener('submit', function (zdarzenie) {
+    var tekst = zdarzenie.target.dataset && zdarzenie.target.dataset.potwierdz;
+    if (tekst && !window.confirm(tekst)) {
+        zdarzenie.preventDefault();
+    }
+});
