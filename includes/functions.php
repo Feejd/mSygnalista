@@ -161,6 +161,8 @@ function menuAdmina(string $aktywna): string
     $zakladki = [
         'index.php' => ['Start', 'fa-gauge'],
         'kategorie.php' => ['Kategorie', 'fa-folder-tree'],
+        'uslugi.php' => ['Usługi', 'fa-list-check'],
+        'inspektorzy.php' => ['Inspektorzy', 'fa-user-tie'],
     ];
 
     $html = '<nav class="flex flex-wrap gap-2 mb-6" aria-label="Panel administratora">';

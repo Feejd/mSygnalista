@@ -39,6 +39,6 @@ require __DIR__ . '/../../includes/header.php';
 </div>
 
 <div class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm text-sm text-mobiTextMuted">
-    Kategorie są już w zakładce powyżej. Zarządzanie usługami, inspektorami, użytkownikami i rezerwacjami jest w przygotowaniu.
+    Kategorie, usługi i inspektorzy są w zakładkach powyżej. Grafik pracy, rezerwacje i użytkownicy są w przygotowaniu.
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>
