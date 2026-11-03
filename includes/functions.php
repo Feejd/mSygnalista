@@ -163,6 +163,7 @@ function menuAdmina(string $aktywna): string
         'kategorie.php' => ['Kategorie', 'fa-folder-tree'],
         'uslugi.php' => ['Usługi', 'fa-list-check'],
         'inspektorzy.php' => ['Inspektorzy', 'fa-user-tie'],
+        'rezerwacje.php' => ['Rezerwacje', 'fa-calendar-days'],
     ];
 
     $html = '<nav class="flex flex-wrap gap-2 mb-6" aria-label="Panel administratora">';
@@ -190,4 +191,63 @@ function zapiszAudyt(string $akcja, string $encja, int $encjaId, string $opis): 
         'id' => $encjaId,
         'opis' => mb_substr($opis, 0, 1000),
     ]);
+}
+
+// --- Statusy rezerwacji ---
+
+const STATUSY_REZERWACJI = [
+    'pending' => 'Oczekująca',
+    'confirmed' => 'Potwierdzona',
+    'completed' => 'Zrealizowana',
+    'cancelled' => 'Anulowana',
+];
+
+// Dozwolone zmiany statusu. Zrealizowanej i anulowanej wizyty już nie zmieniamy.
+const PRZEJSCIA_STATUSOW = [
+    'pending' => ['confirmed', 'cancelled'],
+    'confirmed' => ['completed', 'cancelled'],
+    'completed' => [],
+    'cancelled' => [],
+];
+
+function znaczekStatusu(string $kod): string
+{
+    $kolory = [
+        'pending' => 'bg-amber-50 text-amber-700',
+        'confirmed' => 'bg-blue-50 text-blue-700',
+        'completed' => 'bg-emerald-50 text-emerald-700',
+        'cancelled' => 'bg-gray-100 text-gray-600',
+    ];
+    return '<span class="text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap ' . ($kolory[$kod] ?? 'bg-gray-100') . '">'
+        . e(STATUSY_REZERWACJI[$kod] ?? $kod) . '</span>';
+}
+
+// Zmiana statusu z zapisem kto i dlaczego - historię dopisuje trigger w bazie.
+// Zwraca komunikat błędu albo null, gdy się udało.
+function zmienStatusRezerwacji(int $id, string $nowy, string $powod): ?string
+{
+    $pdo = db();
+    $pdo->beginTransaction();
+
+    // FOR UPDATE - dwie osoby nie zmienią statusu tej samej wizyty jednocześnie
+    $zapytanie = $pdo->prepare('SELECT status_code FROM reservations WHERE id = :id FOR UPDATE');
+    $zapytanie->execute(['id' => $id]);
+    $obecny = $zapytanie->fetchColumn();
+
+    if ($obecny === false) {
+        $pdo->rollBack();
+        return 'Nie znaleziono rezerwacji.';
+    }
+    if (!in_array($nowy, PRZEJSCIA_STATUSOW[$obecny] ?? [], true)) {
+        $pdo->rollBack();
+        return 'Nie można zmienić statusu z „' . STATUSY_REZERWACJI[$obecny] . '” na „'
+            . (STATUSY_REZERWACJI[$nowy] ?? $nowy) . '”.';
+    }
+
+    $pdo->prepare(
+        'UPDATE reservations SET status_code = :status, changed_by = :kto, change_reason = :powod WHERE id = :id'
+    )->execute(['status' => $nowy, 'kto' => aktualnyUzytkownik()['id'], 'powod' => $powod, 'id' => $id]);
+    $pdo->commit();
+
+    return null;
 }
