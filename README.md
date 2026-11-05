@@ -107,7 +107,7 @@ Scenariusze testowe: [`docs/testy.md`](docs/testy.md).
 
 ## Panel administratora (etap 3)
 
-Wszystkie strony w `public/admin/` wymagają roli administratora (`wymagajRoli(ROLA_ADMIN)`), a każda operacja zapisującą ma token CSRF i wpis w logu.
+Wszystkie strony w `public/admin/` wymagają roli administratora (`wymagajRoli(ROLA_ADMIN)`), a każda operacja zapisująca ma token CSRF i wpis w logu.
 
 | Moduł | Plik | Zakres |
 |---|---|---|
