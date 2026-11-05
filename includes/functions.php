@@ -163,6 +163,7 @@ function menuAdmina(string $aktywna): string
         'kategorie.php' => ['Kategorie', 'fa-folder-tree'],
         'uslugi.php' => ['Usługi', 'fa-list-check'],
         'inspektorzy.php' => ['Inspektorzy', 'fa-user-tie'],
+        'harmonogram.php' => ['Harmonogram', 'fa-clock'],
         'rezerwacje.php' => ['Rezerwacje', 'fa-calendar-days'],
     ];
 
