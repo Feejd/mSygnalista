@@ -202,6 +202,39 @@ $zlaczenia = 'FROM reservations r
               JOIN inspectors i ON i.id = r.inspector_id
               JOIN users iu ON iu.id = i.user_id';
 
+// eksport do CSV z tymi samymi filtrami co lista (Excel: średnik i BOM dla polskich znaków)
+if (($_GET['eksport'] ?? '') === 'csv') {
+    // komórka zaczynająca się od = + - @ byłaby w Excelu formułą
+    $bezFormuly = fn (string $w): string => preg_match('/^[=+\-@\t\r]/', $w) ? "'" . $w : $w;
+
+    $wiersze = db()->prepare(
+        "SELECT r.id, r.starts_at, r.ends_at, r.status_code, r.price_at_booking, s.name AS usluga,
+                CONCAT(k.first_name, ' ', k.last_name) AS klient, k.email,
+                CONCAT(iu.first_name, ' ', iu.last_name) AS inspektor
+         $zlaczenia $gdzie
+         ORDER BY r.starts_at DESC, r.id DESC"
+    );
+    $wiersze->execute($parametry);
+
+    zapiszAudyt('reservation.export', 'reservations', 0, 'Eksport rezerwacji do CSV');
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="rezerwacje-' . date('Y-m-d') . '.csv"');
+
+    $plik = fopen('php://output', 'w');
+    fwrite($plik, "\xEF\xBB\xBF");
+    fputcsv($plik, ['ID', 'Początek', 'Koniec', 'Status', 'Cena', 'Usługa', 'Klient', 'E-mail', 'Inspektor'], ';', '"', '');
+
+    while ($w = $wiersze->fetch()) {
+        fputcsv($plik, [
+            $w['id'], $w['starts_at'], $w['ends_at'], STATUSY_REZERWACJI[$w['status_code']], $w['price_at_booking'],
+            $bezFormuly($w['usluga']), $bezFormuly($w['klient']), $bezFormuly($w['email']), $bezFormuly($w['inspektor']),
+        ], ';', '"', '');
+    }
+    fclose($plik);
+    exit;
+}
+
 $ile = db()->prepare("SELECT COUNT(*) $zlaczenia $gdzie");
 $ile->execute($parametry);
 $wszystkich = (int) $ile->fetchColumn();
@@ -275,6 +308,9 @@ require __DIR__ . '/../../includes/header.php';
         <button type="submit" class="bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-5 py-3 rounded-xl">Filtruj</button>
         <a href="<?= e(url('admin/rezerwacje.php?od=' . date('Y-m-d') . '&do=' . date('Y-m-d'))) ?>" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold px-5 py-3 rounded-xl border border-gray-200">Dzisiaj</a>
         <a href="<?= e(url('admin/rezerwacje.php')) ?>" class="text-sm font-semibold px-5 py-3 text-gray-600 hover:text-mobiRed">Wyczyść</a>
+        <a href="<?= e(url('admin/rezerwacje.php?' . http_build_query(array_filter($filtry + ['eksport' => 'csv'], fn ($w) => $w !== '' && $w !== null)))) ?>" class="ml-auto text-sm font-semibold px-5 py-3 rounded-xl border border-gray-200 hover:border-gray-300 inline-flex items-center gap-2">
+            <i aria-hidden="true" class="fa-solid fa-file-csv text-mobiRed"></i> Eksport CSV
+        </a>
     </div>
 </form>
 

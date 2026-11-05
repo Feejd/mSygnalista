@@ -163,7 +163,9 @@ function menuAdmina(string $aktywna): string
         'kategorie.php' => ['Kategorie', 'fa-folder-tree'],
         'uslugi.php' => ['Usługi', 'fa-list-check'],
         'inspektorzy.php' => ['Inspektorzy', 'fa-user-tie'],
+        'harmonogram.php' => ['Harmonogram', 'fa-clock'],
         'rezerwacje.php' => ['Rezerwacje', 'fa-calendar-days'],
+        'audyt.php' => ['Log', 'fa-clock-rotate-left'],
     ];
 
     $html = '<nav class="flex flex-wrap gap-2 mb-6" aria-label="Panel administratora">';

@@ -29,6 +29,27 @@ $dzisiejsze = db()->query(
      ORDER BY r.starts_at"
 )->fetchAll();
 
+// wykres: wizyty w ostatnich 6 miesiącach (bez anulowanych), także miesiące bez wizyt
+$naMiesiac = db()->query(
+    "SELECT DATE_FORMAT(starts_at, '%Y-%m') AS miesiac, COUNT(*) AS liczba
+     FROM reservations
+     WHERE status_code <> 'cancelled'
+       AND starts_at >= DATE_FORMAT(CURDATE() - INTERVAL 5 MONTH, '%Y-%m-01')
+       AND starts_at < DATE_FORMAT(CURDATE() + INTERVAL 1 MONTH, '%Y-%m-01')
+     GROUP BY miesiac"
+)->fetchAll(PDO::FETCH_KEY_PAIR);
+
+$nazwyMiesiecy = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+$wykres = [];
+for ($i = 5; $i >= 0; $i--) {
+    $data = new DateTimeImmutable('first day of -' . $i . ' month');
+    $wykres[] = [
+        'nazwa' => $nazwyMiesiecy[(int) $data->format('n') - 1],
+        'liczba' => (int) ($naMiesiac[$data->format('Y-m')] ?? 0),
+    ];
+}
+$najwiecej = max(1, ...array_column($wykres, 'liczba'));
+
 $tytul = 'Panel administratora';
 require __DIR__ . '/../../includes/header.php';
 ?>
@@ -53,6 +74,37 @@ require __DIR__ . '/../../includes/header.php';
         </div>
     <?php endforeach; ?>
 </div>
+
+<section class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm mb-6" aria-labelledby="wykres-tytul">
+    <h2 id="wykres-tytul" class="text-lg font-bold text-gray-900">Wizyty w ostatnich 6 miesiącach</h2>
+    <p class="text-xs text-mobiTextMuted mb-4">Liczba wizyt według miesiąca, bez anulowanych.</p>
+
+    <div class="wykres" aria-hidden="true">
+        <?php foreach ($wykres as $m): ?>
+            <div class="wykres-kolumna">
+                <span class="wykres-dymek"><?= e($m['nazwa']) ?>: <?= $m['liczba'] ?></span>
+                <div class="wykres-pole">
+                    <?php if ($m['liczba'] > 0): ?>
+                        <div class="wykres-slupek" style="height: <?= round($m['liczba'] / $najwiecej * 100, 1) ?>%"></div>
+                    <?php endif; ?>
+                </div>
+                <span class="wykres-opis"><?= e($m['nazwa']) ?></span>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <details class="mt-3 text-sm">
+        <summary class="cursor-pointer text-mobiTextMuted text-xs font-semibold">Pokaż jako tabelę</summary>
+        <table class="mt-2 w-full max-w-xs">
+            <thead><tr class="text-left text-xs text-gray-500"><th scope="col" class="py-1">Miesiąc</th><th scope="col" class="py-1 text-right">Wizyty</th></tr></thead>
+            <tbody>
+                <?php foreach ($wykres as $m): ?>
+                    <tr class="border-t border-gray-100"><td class="py-1"><?= e($m['nazwa']) ?></td><td class="py-1 text-right"><?= $m['liczba'] ?></td></tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </details>
+</section>
 
 <section class="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden" aria-labelledby="dzis-tytul">
     <div class="flex flex-wrap justify-between items-center gap-2 p-5 pb-0">

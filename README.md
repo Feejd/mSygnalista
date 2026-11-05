@@ -105,6 +105,33 @@ Dane służą wyłącznie do lokalnych testów projektu. Hasła w bazie są prze
 
 Scenariusze testowe: [`docs/testy.md`](docs/testy.md).
 
+## Panel administratora (etap 3)
+
+Wszystkie strony w `public/admin/` wymagają roli administratora (`wymagajRoli(ROLA_ADMIN)`), a każda operacja zapisującą ma token CSRF i wpis w logu.
+
+| Moduł | Plik | Zakres |
+|---|---|---|
+| Start | `index.php` | liczniki z bazy, wizyty na dziś, wykres wizyt z 6 miesięcy |
+| Kategorie | `kategorie.php` | dodawanie, edycja, ukrywanie, usuwanie pustych kategorii |
+| Usługi | `uslugi.php` | CRUD, kategoria, cena, czas, aktywność, wyszukiwanie i filtr |
+| Inspektorzy | `inspektorzy.php` | nadanie roli istniejącemu kontu, dane, aktywność, przypisanie wielu usług (N:M) |
+| Harmonogram | `harmonogram.php` | godziny pracy, przerwy, urlopy i inne nieobecności |
+| Rezerwacje | `rezerwacje.php` | lista, filtry (data, status, inspektor, klient), paginacja, szczegóły, zmiana statusu, anulowanie |
+| Log | `audyt.php` | podgląd `audit_logs`: kto, kiedy i co zmienił |
+
+Zależności są obsłużone bezpiecznie: kategorii z usługami i usługi z rezerwacjami nie da się usunąć, można je tylko ukryć lub wyłączyć. Odznaczenie usługi u inspektora wyłącza przypisanie zamiast je kasować, bo stare rezerwacje wskazują na parę inspektor + usługa.
+
+Statusy rezerwacji zmieniają się tylko w dozwolonej kolejności (`PRZEJSCIA_STATUSOW` w `includes/functions.php`): oczekująca → potwierdzona → zrealizowana, a anulować można wizytę oczekującą lub potwierdzoną.
+
+### Funkcje dodatkowe etapu 3
+
+- historia zmian statusu każdej rezerwacji (zapisują ją triggery w bazie),
+- log operacji administratora z filtrem po rodzaju operacji,
+- urlopy, zwolnienia i szkolenia z ostrzeżeniem o rezerwacjach w tym czasie,
+- eksport rezerwacji do CSV z aktualnymi filtrami, z ochroną przed formułami w Excelu,
+- wykres wizyt na stronie startowej z tabelą jako alternatywą,
+- wyszukiwanie rezerwacji po kliencie i paginacja.
+
 ## Struktura projektu
 *(Będzie się zmieniać wraz z postępem prac.)*
 ```bash
