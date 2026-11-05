@@ -51,3 +51,53 @@ Hasło do kont testowych: `Demo!mSygnalista2026` (szczegóły w README).
 | P5 | Nowe hasło takie samo jak stare | Błąd |
 | P6 | Poprawna zmiana hasła, wylogowanie, logowanie nowym | Działa |
 | P7 | Formularz wysłany bez `csrf_token` (np. z innej strony) | 403 |
+
+## Etap 3 – panel administratora
+
+Logowanie jako `admin@example.test`.
+
+### Dostęp
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| A1 | Obywatel lub inspektor wpisuje adres dowolnej strony z `admin/` | 403 |
+| A2 | Eksport CSV (`rezerwacje.php?eksport=csv`) jako obywatel | 403 |
+| A3 | Formularz wysłany bez `csrf_token` | 403 |
+
+### Kategorie i usługi
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| K1 | Dodanie kategorii o istniejącej nazwie | „Kategoria o tej nazwie już istnieje” |
+| K2 | Usunięcie kategorii z usługami | Odmowa, kategorię można ukryć |
+| K3 | Ukrycie kategorii | Jej usługi znikają z oferty `uslugi.php` |
+| S1 | Usługa z ceną `79,99` i czasem 45 min | W bazie `79.99` i `45` |
+| S2 | Czas 7 minut, cena ujemna, nieistniejąca kategoria | Komunikat przy każdym polu |
+| S3 | Usunięcie usługi z rezerwacjami | Odmowa, usługę można wyłączyć |
+| S4 | Wyłączenie usługi | Znika z oferty, `uslugi.php?umow=ID` daje 400 |
+
+### Inspektorzy i harmonogram
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| I1 | Nowy inspektor z e-mailem bez konta | Błąd „Nie ma konta z takim adresem” |
+| I2 | Nowy inspektor z zajętym numerem służbowym | „Ten numer służbowy jest już zajęty” |
+| I3 | Nowy inspektor z kontem obywatela | Konto dostaje rolę inspektora i po zalogowaniu trafia do panelu inspektora |
+| I4 | Odznaczenie usługi z rezerwacjami | Przypisanie ma `is_active = 0`, rezerwacje zostają |
+| I5 | Dezaktywacja jedynego inspektora usługi | Oferta pokazuje „brak dostępnych inspektorów” |
+| H1 | Godziny nachodzące na istniejące tego samego dnia | Odmowa |
+| H2 | Przerwa poza godzinami pracy lub nachodząca na inną | Odmowa |
+| H3 | Podmiana `id` na grafik innego inspektora | Nic się nie zmienia |
+| H4 | Urlop w czasie aktywnej rezerwacji | Zapis i ostrzeżenie z liczbą rezerwacji |
+
+### Rezerwacje i log
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| Z1 | Filtry daty, statusu, inspektora i klienta | Lista i licznik się zgadzają, filtry zostają przy zmianie strony |
+| Z2 | Błędna data lub status w adresie | Filtr jest ignorowany, brak błędu |
+| Z3 | Oczekująca → potwierdzona → zrealizowana | Działa, każda zmiana jest w historii |
+| Z4 | Zrealizowana → anulowana (ręcznie w żądaniu) | Odmowa |
+| Z5 | Eksport CSV z filtrem statusu | Plik ma tylko przefiltrowane wiersze, Excel pokazuje polskie znaki |
+| Z6 | Usługa o nazwie zaczynającej się od `=` | W CSV komórka ma `'` na początku |
+| L1 | Dowolna operacja admina | Nowy wpis w `audyt.php` |
