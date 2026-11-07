@@ -117,6 +117,7 @@ Wszystkie strony w `public/admin/` wymagają roli administratora (`wymagajRoli(R
 | Inspektorzy | `inspektorzy.php` | nadanie roli istniejącemu kontu, dane, aktywność, przypisanie wielu usług (N:M) |
 | Harmonogram | `harmonogram.php` | godziny pracy, przerwy, urlopy i inne nieobecności |
 | Rezerwacje | `rezerwacje.php` | lista, filtry (data, status, inspektor, klient), paginacja, szczegóły, zmiana statusu, anulowanie |
+| Użytkownicy | `uzytkownicy.php` | lista, wyszukiwanie, filtr roli, blokowanie kont, nadawanie i odbieranie roli administratora (nie dla własnego konta) |
 | Log | `audyt.php` | podgląd `audit_logs`: kto, kiedy i co zmienił |
 
 Zależności są obsłużone bezpiecznie: kategorii z usługami i usługi z rezerwacjami nie da się usunąć, można je tylko ukryć lub wyłączyć. Odznaczenie usługi u inspektora wyłącza przypisanie zamiast je kasować, bo stare rezerwacje wskazują na parę inspektor + usługa.

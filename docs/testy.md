@@ -101,3 +101,12 @@ Logowanie jako `admin@example.test`.
 | Z5 | Eksport CSV z filtrem statusu | Plik ma tylko przefiltrowane wiersze, Excel pokazuje polskie znaki |
 | Z6 | Usługa o nazwie zaczynającej się od `=` | W CSV komórka ma `'` na początku |
 | L1 | Dowolna operacja admina | Nowy wpis w `audyt.php` |
+
+### Użytkownicy
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| UZ1 | Zablokowanie zalogowanego obywatela | Przy następnym kliknięciu jest wylogowany i nie może się zalogować |
+| UZ2 | Próba zablokowania własnego konta (podmiana `id`) | „Nie możesz zmieniać blokady ani ról własnego konta” |
+| UZ3 | Nadanie roli administratora | Po zalogowaniu użytkownik trafia do panelu admina |
+| UZ4 | Wyszukiwanie po fragmencie nazwiska, filtr roli i „tylko zablokowane” | Licznik i lista się zgadzają |
