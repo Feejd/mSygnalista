@@ -165,6 +165,7 @@ function menuAdmina(string $aktywna): string
         'inspektorzy.php' => ['Inspektorzy', 'fa-user-tie'],
         'harmonogram.php' => ['Harmonogram', 'fa-clock'],
         'rezerwacje.php' => ['Rezerwacje', 'fa-calendar-days'],
+        'uzytkownicy.php' => ['Użytkownicy', 'fa-users'],
         'audyt.php' => ['Log', 'fa-clock-rotate-left'],
     ];
 
