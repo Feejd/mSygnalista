@@ -48,6 +48,14 @@ Wersja online działa w Cloudflare Containers. Po 30 minutach bez ruchu kontener
 
 Wymagane PHP 8.1 lub nowsze. Błędy aplikacji zapisują się w `storage/logs/app.log`.
 
+### Testy automatyczne
+
+Reguła nakładania się wizyt i liczenie godzin pracy (przykład 10:00–11:00 z wytycznych):
+
+```bash
+php tests/kolizje_test.php
+```
+
 ### Wdrożenie na Cloudflare
 
 Pliki w katalogu `deploy/`: `Dockerfile` buduje obraz z Apache, PHP i MariaDB, `start.sh` przy starcie importuje `database.sql` i tworzy `config.php` z losowym hasłem do bazy, a Worker (`src/index.ts`) sprawdza kod dostępu i przekazuje ruch do kontenera. Wymaga planu Workers Paid i Dockera.
@@ -198,6 +206,9 @@ mSygnalista/
 │
 ├── docs/
 │   └── testy.md                    # Lista scenariuszy do sprawdzenia
+│
+├── tests/
+│   └── kolizje_test.php            # Testy kolizji terminów (php tests/kolizje_test.php)
 │
 ├── deploy/                         # Wersja online (Cloudflare Containers)
 │   ├── Dockerfile                  # Apache + PHP + MariaDB
