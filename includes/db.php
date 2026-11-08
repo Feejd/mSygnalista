@@ -18,6 +18,9 @@ function db(): PDO
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]
         );
+
+        // baza liczy NOW() i CURDATE() w tej samej strefie co PHP (z uwzględnieniem czasu letniego)
+        $pdo->exec("SET time_zone = '" . date('P') . "'");
     }
 
     return $pdo;

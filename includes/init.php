@@ -9,6 +9,9 @@ ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/../storage/logs/app.log');
 error_reporting(E_ALL);
 
+// wszystkie godziny wizyt są czasem polskim
+date_default_timezone_set('Europe/Warsaw');
+
 // Adres katalogu public, np. "/mSygnalista/public" albo "" gdy public jest głównym katalogiem serwera.
 $publicDir = realpath(__DIR__ . '/../public');
 $skrypt = realpath($_SERVER['SCRIPT_FILENAME'] ?? '') ?: '';

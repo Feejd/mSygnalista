@@ -66,6 +66,11 @@ try {
                         <i aria-hidden="true" class="fa-solid fa-user-tie sm:mr-1"></i><span class="hidden sm:inline">Panel inspektora</span>
                     </a>
                 <?php endif; ?>
+                <?php if (maRole(ROLA_OBYWATEL)): ?>
+                    <a href="<?= e(url('konto/rezerwacje.php')) ?>" class="text-xs font-semibold text-gray-700 hover:text-mobiRed px-2 py-2">
+                        <i aria-hidden="true" class="fa-solid fa-calendar-check sm:mr-1"></i><span class="hidden sm:inline">Moje wizyty</span>
+                    </a>
+                <?php endif; ?>
                 <a href="<?= e(url('konto/profil.php')) ?>" class="text-xs font-semibold text-gray-700 hover:text-mobiRed px-2 py-2">
                     <i aria-hidden="true" class="fa-solid fa-user sm:mr-1"></i><span class="hidden sm:inline"><?= e($uzytkownik['first_name']) ?></span>
                 </a>
