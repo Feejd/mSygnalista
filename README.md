@@ -141,6 +141,37 @@ Statusy rezerwacji zmieniają się tylko w dozwolonej kolejności (`PRZEJSCIA_ST
 - wykres wizyt na stronie startowej z tabelą jako alternatywą,
 - wyszukiwanie rezerwacji po kliencie i paginacja.
 
+## Rezerwacje (etap 4)
+
+Proces zawsze idzie w kolejności: **usługa → inspektor → data → godzina → potwierdzenie** (`public/rezerwacja.php`). Każdy krok jest parametrem w adresie i serwer sprawdza go od nowa.
+
+**Jak liczone są wolne godziny** (`includes/rezerwacje.php`, funkcja `wolneGodziny()`):
+
+1. Godziny pracy inspektora z `work_schedules` dla dnia tygodnia (albo wyjątkowy dyżur z `availability_overrides`). W święta z tabeli `holidays` nie ma terminów.
+2. Od godzin pracy odejmowane są przerwy (`schedule_breaks`) i nieobecności (`inspector_absences`).
+3. Terminy zaczynają się co 15 minut, a cała wizyta (czas trwania usługi) musi zmieścić się w godzinach pracy.
+4. Odrzucane są terminy, które kolidują z oczekującą lub potwierdzoną wizytą inspektora albo z inną wizytą tego samego klienta, a także terminy w przeszłości i ponad 60 dni naprzód.
+
+**Reguła kolizji** (`nakladajaSie()`): dwie wizyty kolidują, gdy nowa zaczyna się przed końcem istniejącej i kończy po jej początku. Wizyta 10:00–11:00 blokuje 9:30–10:30, 10:00–11:00, 10:15–10:45, 10:30–11:30 i 9:30–11:30, a pozwala na terminy kończące się o 10:00 i zaczynające o 11:00. Sprawdza to `tests/kolizje_test.php`.
+
+**Zapis** (`zarezerwuj()`): w transakcji z blokadą wiersza inspektora (`SELECT ... FOR UPDATE`) termin jest sprawdzany jeszcze raz tuż przed `INSERT`. Gdy dwie osoby klikną ten sam termin, druga czeka na pierwszą i dostaje komunikat, że termin jest zajęty. Zmiana godziny w formularzu albo w adresie niczego nie omija.
+
+| Rola | Strona | Co może |
+|---|---|---|
+| Obywatel | `konto/rezerwacje.php` | nadchodzące oraz zakończone i anulowane wizyty, anulowanie własnej przyszłej wizyty |
+| Inspektor | `inspektor/index.php`, `inspektor/rezerwacje.php` | wizyty na dziś, nadchodzące i historia, dane klienta, potwierdzenie, odwołanie, oznaczenie jako zrealizowana (dopiero po rozpoczęciu) |
+
+Własność danych jest sprawdzana w samym zapytaniu (`WHERE client_id = ...` / `WHERE inspector_id = ...`), więc podmiana numeru wizyty w adresie daje 404.
+
+### Funkcje dodatkowe etapu 4
+
+- wolne godziny dla wybranej daty pobierane przez AJAX (bez JS strona działa normalnie),
+- pasek 14 najbliższych dni z liczbą wolnych terminów,
+- przerwy, urlopy, wyjątkowe dyżury i święta w liczeniu dostępności,
+- blokada podwójnej rezerwacji klienta u różnych inspektorów,
+- historia statusów widoczna dla inspektora i administratora,
+- testy automatyczne reguły kolizji.
+
 ## Struktura projektu
 *(Będzie się zmieniać wraz z postępem prac.)*
 ```bash

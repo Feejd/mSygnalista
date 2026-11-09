@@ -231,3 +231,49 @@ function zarezerwuj(int $klientId, int $uslugaId, int $inspektorId, string $data
         throw $ex;
     }
 }
+
+// --- Panel inspektora ---
+
+// Profil inspektora dla zalogowanego konta albo null (np. admin bez profilu).
+function profilInspektora(int $userId): ?array
+{
+    $zapytanie = db()->prepare(
+        'SELECT id, institution, description, is_active FROM inspectors WHERE user_id = :id'
+    );
+    $zapytanie->execute(['id' => $userId]);
+    return $zapytanie->fetch() ?: null;
+}
+
+// Wizyty jednego inspektora: 'dzis', 'przyszle' (od jutra) albo 'historia' (minione i anulowane).
+function wizytyInspektora(int $inspektorId, string $widok, int $limit = 100, int $offset = 0): array
+{
+    $warunek = match ($widok) {
+        'dzis' => 'DATE(r.starts_at) = CURDATE()',
+        'przyszle' => "r.starts_at >= CURDATE() + INTERVAL 1 DAY AND r.status_code IN ('pending', 'confirmed')",
+        default => "(r.starts_at < CURDATE() OR r.status_code IN ('completed', 'cancelled'))",
+    };
+    $kolejnosc = $widok === 'historia' ? 'r.starts_at DESC' : 'r.starts_at';
+
+    $zapytanie = db()->prepare(
+        "SELECT r.id, r.starts_at, r.ends_at, r.status_code, r.comment, s.name AS usluga,
+                k.first_name AS k_imie, k.last_name AS k_nazwisko, k.phone AS k_telefon
+         FROM reservations r
+         JOIN services s ON s.id = r.service_id
+         JOIN users k ON k.id = r.client_id
+         WHERE r.inspector_id = :inspektor AND $warunek
+         ORDER BY $kolejnosc
+         LIMIT " . (int) $limit . ' OFFSET ' . (int) $offset
+    );
+    $zapytanie->execute(['inspektor' => $inspektorId]);
+    return $zapytanie->fetchAll();
+}
+
+// Inspektor może oznaczyć wizytę jako zrealizowaną dopiero, gdy się zaczęła.
+function dozwoloneStatusyInspektora(array $wizyta): array
+{
+    $mozliwe = PRZEJSCIA_STATUSOW[$wizyta['status_code']] ?? [];
+    if (strtotime($wizyta['starts_at']) > time()) {
+        $mozliwe = array_values(array_diff($mozliwe, ['completed']));
+    }
+    return $mozliwe;
+}
