@@ -110,3 +110,28 @@ Logowanie jako `admin@example.test`.
 | UZ2 | Próba zablokowania własnego konta (podmiana `id`) | „Nie możesz zmieniać blokady ani ról własnego konta” |
 | UZ3 | Nadanie roli administratora | Po zalogowaniu użytkownik trafia do panelu admina |
 | UZ4 | Wyszukiwanie po fragmencie nazwiska, filtr roli i „tylko zablokowane” | Licznik i lista się zgadzają |
+
+## Etap 4 – rezerwacje
+
+Grafik z danych testowych: inspektorzy pracują pon–pt 8:00–16:00 z przerwą 12:00–12:30.
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| R1 | Niezalogowany klika „Umów wizytę” | Logowanie, potem powrót do rezerwacji tej usługi |
+| R2 | Usługa „Podstawy prawa pracy” | Do wyboru tylko inspektorzy, którzy ją prowadzą |
+| R3 | Podmiana `inspektor=` na kogoś, kto nie prowadzi usługi | Komunikat i powrót do wyboru inspektora |
+| R4 | Niedziela, 11.11 (święto), dzień w przeszłości, data za 3 miesiące | Brak wolnych godzin |
+| R5 | Usługa 60 min w poniedziałek | Ostatni termin przed przerwą 11:00, po przerwie od 12:30, ostatni 15:00 |
+| R6 | Klient A rezerwuje 10:00–11:00, klient B sprawdza usługę 30 min | B widzi 09:30 i 11:00, nie widzi 09:45–10:45 |
+| R7 | B wysyła ręcznie `godzina=10:30` | „Ten termin jest już niedostępny” |
+| R8 | Godzina spoza siatki (np. 09:07) | Odrzucona |
+| R9 | Dwie osoby wysyłają ten sam termin w tej samej chwili | Zapisuje się dokładnie jedna rezerwacja |
+| R10 | Klient A szuka terminu u innego inspektora w czasie swojej wizyty | Te godziny są niedostępne |
+| R11 | Urlop inspektora 12:30–14:00 | Brak terminów w tym czasie |
+| K1 | Klient anuluje swoją przyszłą wizytę | Status „Anulowana”, termin znowu wolny |
+| K2 | Klient podmienia `id` na cudzą wizytę | 404 |
+| K3 | Klient anuluje wizytę z przeszłości | Odmowa |
+| P1 | Inspektor otwiera wizytę innego inspektora | 404 |
+| P2 | Inspektor oznacza przyszłą wizytę jako zrealizowaną | Odmowa |
+| P3 | Inspektor potwierdza wizytę z notatką | Notatka w historii statusów |
+| P4 | Obywatel wpisuje adres `inspektor/rezerwacje.php` | 403 |
