@@ -135,3 +135,16 @@ Grafik z danych testowych: inspektorzy pracują pon–pt 8:00–16:00 z przerwą
 | P2 | Inspektor oznacza przyszłą wizytę jako zrealizowaną | Odmowa |
 | P3 | Inspektor potwierdza wizytę z notatką | Notatka w historii statusów |
 | P4 | Obywatel wpisuje adres `inspektor/rezerwacje.php` | 403 |
+
+## Anonimowe zgłoszenia
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| Z1 | Zgłoszenie bez kategorii, z tytułem „abc”, krótkim opisem i datą z przyszłości | Komunikat przy każdym polu |
+| Z2 | Plik `.jpg`, który w środku jest skryptem PHP | „niedozwolony typ” |
+| Z3 | Plik większy niż 10 MB albo 4 pliki | Odmowa z komunikatem |
+| Z4 | Poprawne zgłoszenie z PDF i PNG | Token na ekranie, po odświeżeniu strony token już się nie pokazuje |
+| Z5 | Drugie zgłoszenie w ciągu minuty | „Poczekaj minutę” |
+| Z6 | Status po tokenie (także małymi literami, ze spacjami) | Status „Nowe” i przebieg sprawy |
+| Z7 | Status dla `demo-msygnalista-03` | „Rozpatrzone” i informacja od inspektora |
+| Z8 | 11 błędnych tokenów pod rząd | „Zbyt wiele prób” |
