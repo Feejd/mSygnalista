@@ -108,7 +108,8 @@ function godzinyPracy(int $inspektorId, string $data): array
 }
 
 // Zajęte przedziały inspektora w danym dniu (oczekujące i potwierdzone wizyty).
-function zajeteTerminy(int $inspektorId, string $data, ?int $klientId = null): array
+// $pominId - wizyta przekładana przez klienta nie blokuje sama siebie.
+function zajeteTerminy(int $inspektorId, string $data, ?int $klientId = null, ?int $pominId = null): array
 {
     $sql = "SELECT TIME_FORMAT(starts_at, '%H:%i') AS od, TIME_FORMAT(ends_at, '%H:%i') AS do_
             FROM reservations
@@ -121,13 +122,19 @@ function zajeteTerminy(int $inspektorId, string $data, ?int $klientId = null): a
         $parametry['klient'] = $klientId;
     }
 
-    $zapytanie = db()->prepare($sql . ')');
+    $sql .= ')';
+    if ($pominId !== null) {
+        $sql .= ' AND id <> :pomin';
+        $parametry['pomin'] = $pominId;
+    }
+
+    $zapytanie = db()->prepare($sql);
     $zapytanie->execute($parametry);
     return array_map(fn ($z) => [naMinuty($z['od']), naMinuty($z['do_'])], $zapytanie->fetchAll());
 }
 
 // Lista godzin rozpoczęcia ("09:00", "09:15", ...), w których wizyta o danej długości się zmieści.
-function wolneGodziny(int $inspektorId, string $data, int $czasTrwania, ?int $klientId = null): array
+function wolneGodziny(int $inspektorId, string $data, int $czasTrwania, ?int $klientId = null, ?int $pominId = null): array
 {
     $dzisiaj = date('Y-m-d');
     $ostatniDzien = date('Y-m-d', strtotime('+' . REZERWACJA_DNI_DO_PRZODU . ' days'));
@@ -138,7 +145,7 @@ function wolneGodziny(int $inspektorId, string $data, int $czasTrwania, ?int $kl
 
     // dzisiaj tylko godziny, które jeszcze nie minęły
     $najwczesniej = $data === $dzisiaj ? naMinuty(date('H:i')) + 1 : 0;
-    $zajete = zajeteTerminy($inspektorId, $data, $klientId);
+    $zajete = zajeteTerminy($inspektorId, $data, $klientId, $pominId);
     $wolne = [];
 
     foreach (godzinyPracy($inspektorId, $data) as [$od, $do]) {
@@ -180,7 +187,8 @@ function uslugaUInspektora(int $uslugaId, int $inspektorId): ?array
 
 // Zapis wizyty. Wszystko jest sprawdzane jeszcze raz po stronie serwera,
 // bo dane z formularza mogły zostać zmienione. Zwraca [id, null] albo [null, komunikat].
-function zarezerwuj(int $klientId, int $uslugaId, int $inspektorId, string $data, string $godzina, string $komentarz): array
+// $przekladanaId - przełożenie: nowa wizyta powstaje, a stara zostaje anulowana w tej samej transakcji.
+function zarezerwuj(int $klientId, int $uslugaId, int $inspektorId, string $data, string $godzina, string $komentarz, ?int $przekladanaId = null): array
 {
     $pdo = db();
     $pdo->beginTransaction();
@@ -197,7 +205,21 @@ function zarezerwuj(int $klientId, int $uslugaId, int $inspektorId, string $data
             return [null, 'Ta usługa nie jest już dostępna u wybranego inspektora.'];
         }
 
-        if (!in_array($godzina, wolneGodziny($inspektorId, $data, (int) $usluga['duration_minutes'], $klientId), true)) {
+        if ($przekladanaId !== null) {
+            $stara = $pdo->prepare(
+                "SELECT id FROM reservations
+                 WHERE id = :id AND client_id = :klient AND inspector_id = :inspektor AND service_id = :usluga
+                   AND status_code IN ('pending', 'confirmed') AND starts_at > NOW()
+                 FOR UPDATE"
+            );
+            $stara->execute(['id' => $przekladanaId, 'klient' => $klientId, 'inspektor' => $inspektorId, 'usluga' => $uslugaId]);
+            if (!$stara->fetchColumn()) {
+                $pdo->rollBack();
+                return [null, 'Tej wizyty nie można już przełożyć.'];
+            }
+        }
+
+        if (!in_array($godzina, wolneGodziny($inspektorId, $data, (int) $usluga['duration_minutes'], $klientId, $przekladanaId), true)) {
             $pdo->rollBack();
             return [null, 'Wybrany termin jest już zajęty albo niedostępny. Wybierz inną godzinę.'];
         }
@@ -221,6 +243,18 @@ function zarezerwuj(int $klientId, int $uslugaId, int $inspektorId, string $data
             'powod' => 'Rezerwacja klienta',
         ]);
         $id = (int) $pdo->lastInsertId();
+
+        if ($przekladanaId !== null) {
+            // anulowanie starej wizyty - trigger zapisze to w historii statusów
+            $pdo->prepare(
+                "UPDATE reservations SET status_code = 'cancelled', changed_by = :kto, change_reason = :powod WHERE id = :id"
+            )->execute([
+                'kto' => $klientId,
+                'powod' => 'Przełożona przez klienta na ' . date('d.m.Y', strtotime($data)) . ' ' . $godzina . ' (wizyta #' . $id . ')',
+                'id' => $przekladanaId,
+            ]);
+        }
+
         $pdo->commit();
 
         return [$id, null];
