@@ -141,6 +141,17 @@ Statusy rezerwacji zmieniają się tylko w dozwolonej kolejności (`PRZEJSCIA_ST
 - wykres wizyt na stronie startowej z tabelą jako alternatywą,
 - wyszukiwanie rezerwacji po kliencie i paginacja.
 
+## Anonimowe zgłoszenia
+
+- `zgloszenie.php` – formularz bez logowania: rodzaj sprawy, tytuł, opis, opcjonalnie data i miejsce oraz do 3 załączników (PDF, JPG, PNG, MP4, po 10 MB). Nie zapisujemy IP ani konta zgłaszającego.
+- Po wysłaniu zgłaszający dostaje token, np. `MSY-3F9A-07C2-B1D4-88E0-5A6C`, pokazywany tylko raz. W bazie jest wyłącznie jego skrót SHA-256 (`reports.token_hash`).
+- `status.php` – status sprawy, informacja od inspektora i przebieg sprawy po wpisaniu tokenu (bez wewnętrznych notatek). Token wysyłany jest metodą POST, żeby nie trafiał do adresu i logów; limit 10 prób na 10 minut.
+- Załączniki: typ sprawdzany po zawartości pliku (`finfo`), a nie po rozszerzeniu; pliki zapisywane pod losową nazwą w `storage/zalaczniki/`, poza katalogiem publicznym.
+
+Testowe tokeny z `database.sql`: `demo-msygnalista-01` … `demo-msygnalista-04`.
+
+Dla lokalnego PHP (MAMP/XAMPP) w `php.ini` ustaw `upload_max_filesize = 10M` i `post_max_size = 35M`.
+
 ## Rezerwacje (etap 4)
 
 Proces zawsze idzie w kolejności: **usługa → inspektor → data → godzina → potwierdzenie** (`public/rezerwacja.php`). Każdy krok jest parametrem w adresie i serwer sprawdza go od nowa.
