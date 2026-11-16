@@ -169,13 +169,14 @@ Proces zawsze idzie w kolejności: **usługa → inspektor → data → godzina 
 
 | Rola | Strona | Co może |
 |---|---|---|
-| Obywatel | `konto/rezerwacje.php` | nadchodzące oraz zakończone i anulowane wizyty, anulowanie własnej przyszłej wizyty |
+| Obywatel | `konto/rezerwacje.php` | nadchodzące oraz zakończone i anulowane wizyty, anulowanie i przełożenie własnej przyszłej wizyty |
 | Inspektor | `inspektor/index.php`, `inspektor/rezerwacje.php` | wizyty na dziś, nadchodzące i historia, dane klienta, potwierdzenie, odwołanie, oznaczenie jako zrealizowana (dopiero po rozpoczęciu) |
 
 Własność danych jest sprawdzana w samym zapytaniu (`WHERE client_id = ...` / `WHERE inspector_id = ...`), więc podmiana numeru wizyty w adresie daje 404.
 
 ### Funkcje dodatkowe etapu 4
 
+- przełożenie wizyty przez klienta (`rezerwacja.php?przeloz=ID`): ta sama usługa i inspektor, nowy termin; w jednej transakcji powstaje nowa wizyta, a stara jest anulowana z adnotacją w historii, a sama stara wizyta nie blokuje nowego terminu,
 - wolne godziny dla wybranej daty pobierane przez AJAX (bez JS strona działa normalnie),
 - pasek 14 najbliższych dni z liczbą wolnych terminów,
 - przerwy, urlopy, wyjątkowe dyżury i święta w liczeniu dostępności,

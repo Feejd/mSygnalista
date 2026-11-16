@@ -18,8 +18,32 @@ wymagajRoli(ROLA_OBYWATEL);
 
 $klientId = (int) aktualnyUzytkownik()['id'];
 
+// --- przełożenie wizyty: rezerwacja.php?przeloz=ID ---
+// usługa i inspektor zostają te same, klient wybiera tylko nowy dzień i godzinę
+$przekladana = null;
+$przelozId = filter_var($_GET['przeloz'] ?? $_POST['przeloz'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
+
+if ($przelozId !== null) {
+    $zapytanie = db()->prepare(
+        "SELECT id, service_id, inspector_id, starts_at, ends_at, comment FROM reservations
+         WHERE id = :id AND client_id = :klient AND status_code IN ('pending', 'confirmed') AND starts_at > NOW()"
+    );
+    $zapytanie->execute(['id' => $przelozId, 'klient' => $klientId]);
+    $przekladana = $zapytanie->fetch() ?: null;
+
+    if ($przekladana === null) {
+        komunikat('blad', 'Tej wizyty nie można przełożyć.');
+        przekieruj('konto/rezerwacje.php');
+    }
+}
+
+// parametr dokładany do każdego linku w trybie przełożenia
+$GLOBALS['parametryPrzelozenia'] = $przelozId !== null ? ['przeloz' => $przelozId] : [];
+
 // --- krok 1: usługa ---
-$uslugaId = filter_var($_GET['usluga'] ?? $_POST['usluga'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$uslugaId = $przekladana !== null
+    ? (int) $przekladana['service_id']
+    : filter_var($_GET['usluga'] ?? $_POST['usluga'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if (!$uslugaId) {
     przekieruj('uslugi.php');
 }
@@ -44,7 +68,9 @@ $inspektorzy = db()->prepare(
 $inspektorzy->execute(['id' => $uslugaId]);
 $inspektorzy = $inspektorzy->fetchAll();
 
-$inspektorId = filter_var($_GET['inspektor'] ?? $_POST['inspektor'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
+$inspektorId = $przekladana !== null
+    ? (int) $przekladana['inspector_id']
+    : (filter_var($_GET['inspektor'] ?? $_POST['inspektor'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null);
 $inspektor = null;
 foreach ($inspektorzy as $i) {
     if ((int) $i['id'] === $inspektorId) {
@@ -52,8 +78,10 @@ foreach ($inspektorzy as $i) {
     }
 }
 if ($inspektorId !== null && $inspektor === null) {
-    komunikat('blad', 'Ten inspektor nie prowadzi wybranej konsultacji.');
-    przekieruj('rezerwacja.php?usluga=' . $uslugaId);
+    komunikat('blad', $przekladana !== null
+        ? 'Ten inspektor nie prowadzi już tej konsultacji - wizyty nie można przełożyć, możesz ją anulować.'
+        : 'Ten inspektor nie prowadzi wybranej konsultacji.');
+    przekieruj($przekladana !== null ? 'konto/rezerwacje.php' : 'rezerwacja.php?usluga=' . $uslugaId);
 }
 
 // --- krok 3 i 4: data i godzina ---
@@ -65,7 +93,7 @@ if ($inspektor !== null && $data !== null) {
     if (!poprawnaDataRezerwacji($data)) {
         $data = null;
     } else {
-        $wolne = wolneGodziny($inspektorId, $data, (int) $usluga['duration_minutes'], $klientId);
+        $wolne = wolneGodziny($inspektorId, $data, (int) $usluga['duration_minutes'], $klientId, $przelozId);
     }
 }
 
@@ -78,7 +106,7 @@ if (isset($_GET['json'])) {
 
 if ($godzina !== null && !in_array($godzina, $wolne, true)) {
     komunikat('blad', 'Ten termin jest już niedostępny. Wybierz inną godzinę.');
-    przekieruj('rezerwacja.php?' . http_build_query(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $data]));
+    przekieruj('rezerwacja.php?' . http_build_query(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $data] + $GLOBALS['parametryPrzelozenia']));
 }
 
 // --- krok 5: potwierdzenie i zapis ---
@@ -91,34 +119,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $komentarz = mb_substr(pole('komentarz'), 0, 1000);
-    [$noweId, $blad] = zarezerwuj($klientId, $uslugaId, $inspektorId, $data, $godzina, $komentarz);
+    [$noweId, $blad] = zarezerwuj($klientId, $uslugaId, $inspektorId, $data, $godzina, $komentarz, $przelozId);
 
     if ($blad !== null) {
         komunikat('blad', $blad);
-        przekieruj('rezerwacja.php?' . http_build_query(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $data]));
+        przekieruj('rezerwacja.php?' . http_build_query(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $data] + $GLOBALS['parametryPrzelozenia']));
     }
 
-    komunikat('sukces', 'Zarezerwowano wizytę na ' . date('d.m.Y', strtotime($data)) . ' o ' . $godzina
+    komunikat('sukces', ($przekladana !== null ? 'Przełożono wizytę na ' : 'Zarezerwowano wizytę na ') . date('d.m.Y', strtotime($data)) . ' o ' . $godzina
         . '. Status: oczekująca na potwierdzenie inspektora.');
     przekieruj('konto/rezerwacje.php');
 }
 
 function adresKroku(array $parametry): string
 {
-    return url('rezerwacja.php?' . http_build_query($parametry));
+    return url('rezerwacja.php?' . http_build_query($parametry + $GLOBALS['parametryPrzelozenia']));
 }
 
 $dniTygodnia = ['', 'pon', 'wt', 'śr', 'czw', 'pt', 'sob', 'nd'];
 $krok = $godzina !== null ? 4 : ($data !== null ? 3 : ($inspektor !== null ? 2 : 1));
 
-$tytul = 'Rezerwacja';
+$tytul = $przekladana !== null ? 'Przełożenie wizyty' : 'Rezerwacja';
 require __DIR__ . '/../includes/header.php';
 ?>
-<a href="<?= e(url('uslugi.php')) ?>" class="inline-flex items-center gap-2 text-sm text-mobiRed font-semibold mb-4">
-    <i aria-hidden="true" class="fa-solid fa-arrow-left"></i> Oferta
+<a href="<?= e(url($przekladana !== null ? 'konto/rezerwacje.php' : 'uslugi.php')) ?>" class="inline-flex items-center gap-2 text-sm text-mobiRed font-semibold mb-4">
+    <i aria-hidden="true" class="fa-solid fa-arrow-left"></i> <?= $przekladana !== null ? 'Moje wizyty' : 'Oferta' ?>
 </a>
-<h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1">Rezerwacja konsultacji</h1>
+<h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1"><?= $przekladana !== null ? 'Przełożenie wizyty' : 'Rezerwacja konsultacji' ?></h1>
 <p class="text-mobiTextMuted mb-6"><?= e($usluga['name']) ?> · <?= (int) $usluga['duration_minutes'] ?> min · <?= e(cena($usluga['price'])) ?></p>
+
+<?php if ($przekladana !== null): ?>
+    <p class="komunikat komunikat-sukces mb-6">
+        Obecny termin: <strong><?= e(date('d.m.Y H:i', strtotime($przekladana['starts_at']))) ?>–<?= e(date('H:i', strtotime($przekladana['ends_at']))) ?></strong>.
+        Wybierz nowy - stara wizyta zostanie anulowana dopiero po potwierdzeniu nowej.
+    </p>
+<?php endif; ?>
 
 <ol class="flex flex-wrap gap-2 mb-6 text-xs font-semibold" aria-label="Kroki rezerwacji">
     <?php foreach (['Inspektor', 'Data', 'Godzina', 'Potwierdzenie'] as $nr => $nazwa): ?>
@@ -152,7 +187,9 @@ require __DIR__ . '/../includes/header.php';
     <section class="bg-white border border-gray-200 rounded-3xl p-5 sm:p-6 shadow-sm" aria-labelledby="krok-tytul">
         <p class="text-sm text-mobiTextMuted mb-1">
             Inspektor: <strong class="text-gray-900"><?= e($inspektor['first_name'] . ' ' . $inspektor['last_name']) ?></strong>
-            · <a href="<?= e(adresKroku(['usluga' => $uslugaId])) ?>" class="text-mobiRed font-semibold">zmień</a>
+            <?php if ($przekladana === null): ?>
+                · <a href="<?= e(adresKroku(['usluga' => $uslugaId])) ?>" class="text-mobiRed font-semibold">zmień</a>
+            <?php endif; ?>
         </p>
         <h2 id="krok-tytul" class="text-lg font-bold text-gray-900 mb-4">Wybierz dzień i godzinę</h2>
 
@@ -160,7 +197,7 @@ require __DIR__ . '/../includes/header.php';
             <?php for ($d = 0; $d < 14; $d++): ?>
                 <?php
                 $dzien = date('Y-m-d', strtotime("+$d days"));
-                $ile = count(wolneGodziny($inspektorId, $dzien, (int) $usluga['duration_minutes'], $klientId));
+                $ile = count(wolneGodziny($inspektorId, $dzien, (int) $usluga['duration_minutes'], $klientId, $przelozId));
                 $aktywny = $dzien === $data;
                 ?>
                 <a href="<?= e(adresKroku(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $dzien])) ?>"
@@ -178,6 +215,9 @@ require __DIR__ . '/../includes/header.php';
               data-terminy="<?= e(adresKroku(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'json' => 1])) ?>">
             <input type="hidden" name="usluga" value="<?= (int) $uslugaId ?>">
             <input type="hidden" name="inspektor" value="<?= (int) $inspektorId ?>">
+            <?php if ($przelozId !== null): ?>
+                <input type="hidden" name="przeloz" value="<?= (int) $przelozId ?>">
+            <?php endif; ?>
             <div>
                 <label for="data" class="block text-xs font-semibold mb-1">Inna data</label>
                 <input type="date" id="data" name="data" value="<?= e($data ?? '') ?>" required
@@ -222,12 +262,15 @@ require __DIR__ . '/../includes/header.php';
             <input type="hidden" name="inspektor" value="<?= (int) $inspektorId ?>">
             <input type="hidden" name="data" value="<?= e($data) ?>">
             <input type="hidden" name="godzina" value="<?= e($godzina) ?>">
+            <?php if ($przelozId !== null): ?>
+                <input type="hidden" name="przeloz" value="<?= (int) $przelozId ?>">
+            <?php endif; ?>
             <div>
                 <label for="komentarz" class="block text-sm font-semibold mb-2">Czego dotyczy sprawa? (opcjonalnie)</label>
-                <textarea id="komentarz" name="komentarz" rows="3" maxlength="1000" class="pole"></textarea>
+                <textarea id="komentarz" name="komentarz" rows="3" maxlength="1000" class="pole"><?= e($przekladana['comment'] ?? '') ?></textarea>
             </div>
             <div class="flex flex-wrap gap-3">
-                <button type="submit" class="bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-xl transition">Potwierdzam rezerwację</button>
+                <button type="submit" class="bg-mobiRed hover:bg-mobiRedDark text-white font-semibold px-5 py-3 rounded-xl transition"><?= $przekladana !== null ? 'Potwierdzam nowy termin' : 'Potwierdzam rezerwację' ?></button>
                 <a href="<?= e(adresKroku(['usluga' => $uslugaId, 'inspektor' => $inspektorId, 'data' => $data])) ?>" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold px-5 py-3 rounded-xl border border-gray-200">Zmień godzinę</a>
             </div>
         </form>
