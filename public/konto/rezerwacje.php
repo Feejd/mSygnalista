@@ -74,11 +74,14 @@ function kartaWizyty(array $w, bool $moznaAnulowac): void
             <div><dt class="sr-only">Cena</dt><dd><?= e(cena($w['price_at_booking'])) ?></dd></div>
         </dl>
         <?php if ($moznaAnulowac && strtotime($w['starts_at']) > time()): ?>
-            <form method="post" action="<?= e(url('konto/rezerwacje.php')) ?>" class="mt-4" data-potwierdz="Anulować wizytę <?= e(date('d.m.Y H:i', strtotime($w['starts_at']))) ?>?">
+            <div class="flex flex-wrap gap-2 mt-4">
+            <a href="<?= e(url('rezerwacja.php?przeloz=' . $w['id'])) ?>" class="text-xs font-semibold px-3 py-2 rounded-lg border border-gray-200 hover:border-gray-300">Przełóż</a>
+            <form method="post" action="<?= e(url('konto/rezerwacje.php')) ?>" data-potwierdz="Anulować wizytę <?= e(date('d.m.Y H:i', strtotime($w['starts_at']))) ?>?">
                 <?= csrfPole() ?>
                 <input type="hidden" name="id" value="<?= (int) $w['id'] ?>">
                 <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">Anuluj wizytę</button>
             </form>
+            </div>
         <?php endif; ?>
     </li>
     <?php
