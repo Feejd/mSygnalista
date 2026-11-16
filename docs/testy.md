@@ -131,6 +131,10 @@ Grafik z danych testowych: inspektorzy pracują pon–pt 8:00–16:00 z przerwą
 | K1 | Klient anuluje swoją przyszłą wizytę | Status „Anulowana”, termin znowu wolny |
 | K2 | Klient podmienia `id` na cudzą wizytę | 404 |
 | K3 | Klient anuluje wizytę z przeszłości | Odmowa |
+| K4 | Klient przekłada wizytę 10:00–10:30 na 10:15 tego samego dnia | Nowa wizyta 10:15, stara anulowana z adnotacją „Przełożona przez klienta…” |
+| K5 | Przełożenie na godzinę zajętą przez kogoś innego | „Ten termin jest już niedostępny” |
+| K6 | Ponowne przełożenie już anulowanej starej wizyty albo `przeloz=` cudzej wizyty | „Tej wizyty nie można przełożyć” |
+| K7 | `rezerwacja.php?przeloz=ID&usluga=2&inspektor=3` | Usługa i inspektor zostają z przekładanej wizyty |
 | P1 | Inspektor otwiera wizytę innego inspektora | 404 |
 | P2 | Inspektor oznacza przyszłą wizytę jako zrealizowaną | Odmowa |
 | P3 | Inspektor potwierdza wizytę z notatką | Notatka w historii statusów |
