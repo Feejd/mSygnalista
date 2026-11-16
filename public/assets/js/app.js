@@ -106,3 +106,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (poleDaty.value) zaladuj(poleDaty.value);
     });
 });
+
+// kopiowanie tokenu zgłoszenia do schowka
+document.addEventListener('click', function (zdarzenie) {
+    var przycisk = zdarzenie.target.closest('[data-kopiuj]');
+    if (!przycisk) return;
+
+    var tekst = document.getElementById(przycisk.dataset.kopiuj).textContent.trim();
+    if (!navigator.clipboard) return;
+
+    navigator.clipboard.writeText(tekst).then(function () {
+        var stary = przycisk.innerHTML;
+        przycisk.textContent = 'Skopiowano';
+        setTimeout(function () { przycisk.innerHTML = stary; }, 2000);
+    });
+});

@@ -8,6 +8,10 @@ RUN apt-get update \
     && docker-php-ext-install pdo_mysql \
     && a2enmod remoteip headers
 
+# załączniki do zgłoszeń: do 3 plików po 10 MB
+RUN printf 'upload_max_filesize=10M\npost_max_size=35M\nmax_file_uploads=5\nexpose_php=Off\n' \
+        > /usr/local/etc/php/conf.d/msygnalista.ini
+
 # katalog public jako główny katalog strony
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
