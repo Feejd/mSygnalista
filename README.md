@@ -148,6 +148,13 @@ Statusy rezerwacji zmieniają się tylko w dozwolonej kolejności (`PRZEJSCIA_ST
 - `status.php` – status sprawy, informacja od inspektora i przebieg sprawy po wpisaniu tokenu (bez wewnętrznych notatek). Token wysyłany jest metodą POST, żeby nie trafiał do adresu i logów; limit 10 prób na 10 minut.
 - Załączniki: typ sprawdzany po zawartości pliku (`finfo`), a nie po rozszerzeniu; pliki zapisywane pod losową nazwą w `storage/zalaczniki/`, poza katalogiem publicznym.
 
+**Obsługa zgłoszeń:**
+
+- `admin/zgloszenia.php` – wszystkie sprawy z filtrem statusu, rodzaju i spraw bez przydziału; licznik otwartych spraw bez inspektora.
+- `inspektor/zgloszenia.php` – sprawy przydzielone zalogowanemu inspektorowi (do obsługi / zamknięte).
+- `inspektor/zgloszenie.php` – szczegóły, załączniki, zmiana statusu (nowe → w trakcie analizy → rozpatrzone, albo odrzucone) z informacją dla zgłaszającego i wewnętrzną notatką widoczną tylko w historii. Administrator przydziela tu inspektora.
+- `pobierz-zalacznik.php` – plik dostaje tylko administrator albo inspektor przydzielony do sprawy; każde pobranie jest w logu. Brak dostępu i brak pliku dają ten sam błąd 404.
+
 Testowe tokeny z `database.sql`: `demo-msygnalista-01` … `demo-msygnalista-04`.
 
 Dla lokalnego PHP (MAMP/XAMPP) w `php.ini` ustaw `upload_max_filesize = 10M` i `post_max_size = 35M`.

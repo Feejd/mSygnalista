@@ -22,6 +22,10 @@ if ($inspektor !== null && maRole(ROLA_INSPEKTOR)) {
     );
     $zapytanie->execute(['id' => $inspektor['id']]);
     $liczby = $zapytanie->fetch();
+
+    $otwarte = db()->prepare("SELECT COUNT(*) FROM reports WHERE assigned_inspector_id = :id AND status_code IN ('new', 'in_review')");
+    $otwarte->execute(['id' => $inspektor['id']]);
+    $liczby['zgloszenia'] = (int) $otwarte->fetchColumn();
     $dzisiaj = wizytyInspektora((int) $inspektor['id'], 'dzis');
 }
 
@@ -72,6 +76,14 @@ require __DIR__ . '/../../includes/header.php';
             </ul>
         <?php endif; ?>
     </section>
+
+    <a href="<?= e(url('inspektor/zgloszenia.php')) ?>" class="flex flex-wrap items-center justify-between gap-3 bg-white border border-gray-200 hover:border-gray-300 rounded-3xl p-5 shadow-sm mb-4">
+        <span>
+            <span class="font-bold text-gray-900">Zgłoszenia do obsługi</span>
+            <span class="block text-xs text-mobiTextMuted">Anonimowe sprawy przydzielone Tobie</span>
+        </span>
+        <span class="text-2xl font-extrabold"><?= (int) $liczby['zgloszenia'] ?></span>
+    </a>
 
     <section class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm">
         <h2 class="font-bold text-gray-900 mb-1"><?= e($inspektor['institution']) ?></h2>
