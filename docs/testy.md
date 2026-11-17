@@ -152,3 +152,16 @@ Grafik z danych testowych: inspektorzy pracują pon–pt 8:00–16:00 z przerwą
 | Z6 | Status po tokenie (także małymi literami, ze spacjami) | Status „Nowe” i przebieg sprawy |
 | Z7 | Status dla `demo-msygnalista-03` | „Rozpatrzone” i informacja od inspektora |
 | Z8 | 11 błędnych tokenów pod rząd | „Zbyt wiele prób” |
+
+### Obsługa zgłoszeń
+
+| # | Kroki | Oczekiwany wynik |
+|---|---|---|
+| ZO1 | Inspektor otwiera sprawę nieprzydzieloną albo przydzieloną komuś innemu | 404 |
+| ZO2 | Inspektor pobiera załącznik sprawy, której nie prowadzi | 404 |
+| ZO3 | Obywatel lub niezalogowany otwiera `pobierz-zalacznik.php?id=…` | 403 / logowanie |
+| ZO4 | Admin przydziela sprawę inspektorowi | Sprawa pojawia się na liście inspektora, wpis `report.assign` w logu |
+| ZO5 | Inspektor pobiera załącznik przydzielonej sprawy | Plik identyczny z wysłanym, `Content-Disposition: attachment` |
+| ZO6 | Zamknięcie sprawy bez informacji dla zgłaszającego | Prośba o wpisanie informacji |
+| ZO7 | Zmiana „W trakcie analizy” → „Nowe” | Odmowa |
+| ZO8 | Zgłaszający sprawdza status po tokenie | Widzi nowy status i informację, nie widzi notatki wewnętrznej |
